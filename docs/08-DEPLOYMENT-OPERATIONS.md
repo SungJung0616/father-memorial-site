@@ -42,6 +42,7 @@
 - 방문자 제출은 S3 `pending/`에 원본을 올린 뒤 DynamoDB에 `PENDING` 또는 `FAMILY` 상태로 기록된다.
 - 승인된 게시물은 S3 `published/`로 복사되고 `/api/memories`를 통해 공개 화면에 나타난다.
 - CloudFront와 자동 이미지 최적화는 아직 연결하지 않았다.
+- Netlify의 `Powered by Netlify` 공개 배지는 2026-09-07 비활성화했다. 모바일 하단 메뉴와 겹치지 않으며 재배포 없이 적용된다.
 
 ### 현재 보관 자료
 

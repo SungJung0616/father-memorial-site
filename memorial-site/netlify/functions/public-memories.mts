@@ -1,22 +1,27 @@
 import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { documentClient, handleError, json, requiredEnv, s3Client, tableName } from './_shared.mts';
+
+type PublishedItem = {
+  submissionId?: string;
+  status?: string;
+  submittedAt?: string;
+  titleKo?: string;
+  memoryKo?: string;
+  category?: string;
+  contributor?: { name?: string; relationship?: string; memory?: string };
+  publishedFiles?: { publishedKey: string; type: string }[];
+};
 
 export default async function handler(request: Request) {
   if (request.method !== 'GET') return json({ error: 'GET 요청만 허용됩니다.' }, 405);
   try {
-    const result = await documentClient().send(new QueryCommand({
-      TableName: tableName(),
-      IndexName: 'GSI1',
-      KeyConditionExpression: 'GSI1PK = :status',
-      ExpressionAttributeValues: { ':status': 'STATUS#PUBLISHED' },
-      ScanIndexForward: false,
-      Limit: 50,
-    }));
+    const requestedId = new URL(request.url).searchParams.get('id') ?? '';
+    if (requestedId && !/^[0-9a-f-]{36}$/i.test(requestedId)) return json({ error: '추억 번호가 올바르지 않습니다.' }, 400);
     const s3 = s3Client();
     const bucket = requiredEnv('MEMORIAL_S3_BUCKET');
-    const memories = await Promise.all((result.Items ?? []).map(async item => ({
+    const toMemory = async (item: PublishedItem) => ({
       id: item.submissionId,
       group: item.contributor?.relationship || '추억',
       name: item.contributor?.name || '익명',
@@ -28,7 +33,27 @@ export default async function handler(request: Request) {
         url: await getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: file.publishedKey }), { expiresIn: 60 * 60 }),
         type: file.type,
       }))),
-    })));
+    });
+
+    if (requestedId) {
+      const result = await documentClient().send(new GetCommand({
+        TableName: tableName(),
+        Key: { PK: `SUBMISSION#${requestedId}`, SK: 'META' },
+      }));
+      const item = result.Item as PublishedItem | undefined;
+      if (!item || item.status !== 'PUBLISHED') return json({ error: '공개된 추억을 찾을 수 없습니다.' }, 404);
+      return json({ memory: await toMemory(item) }, 200, { 'cache-control': 'public, max-age=60' });
+    }
+
+    const result = await documentClient().send(new QueryCommand({
+      TableName: tableName(),
+      IndexName: 'GSI1',
+      KeyConditionExpression: 'GSI1PK = :status',
+      ExpressionAttributeValues: { ':status': 'STATUS#PUBLISHED' },
+      ScanIndexForward: false,
+      Limit: 50,
+    }));
+    const memories = await Promise.all((result.Items as PublishedItem[] ?? []).map(toMemory));
     return json({ memories }, 200, { 'cache-control': 'public, max-age=60' });
   } catch (error) {
     return handleError(error);
