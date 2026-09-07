@@ -95,6 +95,22 @@ visibility: public | unlisted | members | family | private
 moderation_status: submitted | reviewing | approved | rejected | archived
 ```
 
+## HeroSlide
+
+홈 첫 화면의 대표사진 슬라이드는 최대 5장으로 제한한다.
+
+```yaml
+id: uuid
+photo_id: uuid
+sort_order: integer # 1..5
+caption_ko: string | null
+caption_en: string | null
+is_active: boolean
+is_social_preview: boolean # 한 장만 true
+created_at: datetime
+updated_at: datetime
+```
+
 ## 구현 원칙
 
 - 한글과 영문은 별도 필드로 저장하고 화면에서 선택한 언어를 표시한다.
@@ -102,4 +118,4 @@ moderation_status: submitted | reviewing | approved | rejected | archived
 - 카테고리와 태그는 코드에 고정하지 않고 관리자가 데이터로 추가·정렬한다.
 - 업로드 원본은 비공개 저장소에 보존하고, 승인된 웹용 사본만 공개한다.
 - 콘텐츠 삭제 요청에 대응할 수 있도록 제공자·동의·승인 기록을 남긴다.
-
+- 대표사진은 최대 5장이고 관리자가 순서·설명·활성 상태를 변경한다.
