@@ -9,7 +9,7 @@ const milestones = [
   { year: '2016–18', label: '경기도경제과학진흥원 바이오센터 센터장' },
   { year: '2023', label: '성균관대 명예교수 · 덕성여대 대우교수' },
   { year: '2024', label: '삼오제약 품질관리약사 고문' },
-  { year: '2026', label: '8월 24일 오후 8시 40분(한국 시간), 사랑하는 이들의 곁을 떠나 영면' },
+  { year: '2026', label: '8월 24일, 사랑하는 이들의 곁을 떠나 영면' },
 ];
 
 const albums = [
@@ -48,8 +48,8 @@ export default function Home() {
       <section className="intro section-shell" id="life">
         <p className="section-kicker">A life of scholarship and devotion</p>
         <div className="intro-grid">
-          <h2>후암동에서 시작해<br />평생 이어진 배움과 가르침</h2>
-          <div><p>1957년 10월 17일 서울 용산구 후암동에서 태어난 정영훈 교수는 서울대학교 약학대학에서 학문을 시작해 미국 UCLA에서 화학 박사학위를 받았습니다. Harvard대학교에서 연구를 이어간 뒤 동덕여자대학교와 성균관대학교 강단에서 오랜 세월 연구와 교육에 헌신했습니다. 정년 뒤에도 명예교수와 대우교수, 산업 현장의 고문으로 활동하며 배움과 책임의 길을 이어갔습니다.</p><a className="text-link" href="#teaching">가르침과 연구 보기 <span>→</span></a></div>
+          <h2>학문을 향한 열정과<br />사람을 향한 따뜻함</h2>
+          <div><p>1957년 10월 17일 서울 용산구 후암동에서 태어난 정영훈 교수는 서울대학교 약학대학에서 학문을 시작해 미국 UCLA에서 화학 박사학위를 받았습니다. Harvard대학교에서 연구를 이어간 뒤 동덕여자대학교와 성균관대학교 강단에서 오랜 세월 연구와 교육에 헌신했습니다. 정년 뒤에도 명예교수와 대우교수, 산업 현장의 고문으로 활동하며 배움과 책임의 길을 이어갔습니다.</p><p className="school-history"><strong>학창 시절</strong><span>선림중학교 22회 · 경기고등학교 72회 · 서울대학교 약학대학 35회</span></p><a className="text-link" href="#teaching">가르침과 연구 보기 <span>→</span></a></div>
         </div>
         <div className="milestones" aria-label="주요 생애 연보">
           {milestones.map((item) => <article key={item.year}><strong>{item.year}</strong><span>{item.label}</span></article>)}
