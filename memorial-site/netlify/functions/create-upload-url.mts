@@ -23,13 +23,15 @@ function safeName(name: string) {
 
 export default async function handler(request: Request) {
   if (request.method !== 'POST') return json({ error: 'POST 요청만 허용됩니다.' }, 405);
-  if (process.env.UPLOAD_API_ENABLED !== 'true') {
+  if (process.env.MEMORIAL_UPLOAD_ENABLED !== 'true') {
     return json({ error: '업로드 기능을 준비 중입니다.' }, 503);
   }
 
-  const bucket = process.env.AWS_S3_MEDIA_BUCKET;
-  const region = process.env.AWS_S3_REGION;
-  if (!bucket || !region) return json({ error: '서버 저장소 설정이 완료되지 않았습니다.' }, 503);
+  const bucket = process.env.MEMORIAL_S3_BUCKET;
+  const region = process.env.MEMORIAL_AWS_REGION;
+  const accessKeyId = process.env.MEMORIAL_AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.MEMORIAL_AWS_SECRET_ACCESS_KEY;
+  if (!bucket || !region || !accessKeyId || !secretAccessKey) return json({ error: '서버 저장소 설정이 완료되지 않았습니다.' }, 503);
 
   let files: UploadFile[]; let sharing = 'review'; let contributor: Contributor = {};
   try {
@@ -54,7 +56,7 @@ export default async function handler(request: Request) {
     }
   }
 
-  const client = new S3Client({ region });
+  const client = new S3Client({ region, credentials: { accessKeyId, secretAccessKey } });
   const submissionId = crypto.randomUUID();
   const prefix = `pending/${new Date().toISOString().slice(0, 10)}/${submissionId}`;
   const uploads = await Promise.all(files.map(async (file) => {
