@@ -9,7 +9,7 @@ const milestones = [
   { year: '2016–18', label: 'Director, Bio Center at Gyeonggido Business & Science Accelerator' },
   { year: '2023', label: 'Professor Emeritus at SKKU; faculty appointment at Duksung Women’s University' },
   { year: '2024', label: 'Quality-management pharmacist adviser at Samoh Pharmaceutical' },
-  { year: '2026', label: 'Passed away on August 24, remembered by family, friends, colleagues, and students' },
+  { year: '2026', label: 'Passed away on August 24 at 8:40 p.m. KST, remembered by family, friends, colleagues, and students' },
 ];
 
 export default function EnglishHome(){
