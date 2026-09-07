@@ -6,7 +6,6 @@ import Link from 'next/link';
 type Memory = {
   id: string;
   group: string;
-  name: string;
   submittedAt: string;
   title: string;
   body: string;
@@ -49,13 +48,13 @@ export default function CommunityPage() {
         <Link className="memory-card-link" href={`/community/story?id=${encodeURIComponent(memory.id)}`} aria-label={`${memory.title} 전체 내용 보기`}>
           <div className="memory-card-cover">{memory.photos[0] ? <img src={memory.photos[0].url} alt="" /> : <span aria-hidden="true">記憶</span>}</div>
           <div className="memory-card-copy">
-            <div className="post-meta"><span>{memory.category || memory.group}</span><span>{memory.name} · {new Date(memory.submittedAt).toLocaleDateString('ko-KR')}</span></div>
+            <div className="post-meta"><span>{memory.category || memory.group}</span><span>{new Date(memory.submittedAt).toLocaleDateString('ko-KR')}</span></div>
             <h2>{memory.title}</h2>
             <p>{memory.body || '사진과 함께 전해진 소중한 추억입니다.'}</p>
             <strong>전체 이야기 보기 <span aria-hidden="true">→</span></strong>
           </div>
         </Link>
-        <div className="post-footer"><button className={liked[memory.id] ? 'heart-button liked' : 'heart-button'} onClick={() => setLiked(current => ({ ...current, [memory.id]: !current[memory.id] }))} aria-pressed={!!liked[memory.id]}>♥ <span>함께 기억합니다{liked[memory.id] ? ' 1' : ''}</span></button><span>가족 확인 완료</span></div>
+        <div className="post-footer"><button className={liked[memory.id] ? 'heart-button liked' : 'heart-button'} onClick={() => setLiked(current => ({ ...current, [memory.id]: !current[memory.id] }))} aria-label={liked[memory.id] ? '하트 취소' : '하트 누르기'} aria-pressed={!!liked[memory.id]}>♥ <span>{liked[memory.id] ? '1' : '0'}</span></button><span>가족 확인 완료</span></div>
       </article>)}
     </section>
     {visible < memories.length && <button className="load-more" onClick={() => setVisible(value => value + 8)}>추억 더 보기</button>}

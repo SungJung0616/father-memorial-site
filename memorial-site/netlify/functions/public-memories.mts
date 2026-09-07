@@ -24,7 +24,6 @@ export default async function handler(request: Request) {
     const toMemory = async (item: PublishedItem) => ({
       id: item.submissionId,
       group: item.contributor?.relationship || '추억',
-      name: item.contributor?.name || '익명',
       submittedAt: item.submittedAt,
       title: item.titleKo || '함께 나누는 추억',
       body: item.memoryKo || item.contributor?.memory || '',
