@@ -39,6 +39,7 @@
 - Cognito 앱 클라이언트: `5ej6m31ke38bv61c1iug2cr7ud`
 - 초기 관리자 이메일: `sung.gpslgx@gmail.com` (임시 비밀번호는 문서와 코드에 기록하지 않는다.)
 - 관리자 화면 `/admin`은 Cognito 로그인 후 제출 목록 조회, 승인·보류·비공개 처리를 제공한다.
+- 초대용 임시 비밀번호는 7일 동안 유효하다. 만료되거나 잊은 경우 `/admin`의 이메일 확인 코드 방식으로 새 비밀번호를 설정한다.
 - 방문자 제출은 S3 `pending/`에 원본을 올린 뒤 DynamoDB에 `PENDING` 또는 `FAMILY` 상태로 기록된다.
 - 승인된 게시물은 S3 `published/`로 복사되고 `/api/memories`를 통해 공개 화면에 나타난다.
 - CloudFront와 자동 이미지 최적화는 아직 연결하지 않았다.
