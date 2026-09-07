@@ -26,7 +26,7 @@ export default function Home() {
           </nav>
           <a className="language-button" href="/en" aria-label="영어로 보기">EN</a>
         </header>
-        <div className="hero-portrait" role="img" aria-label="대표사진이 들어갈 자리"><span>대표사진 자리</span></div>
+        <HeroCarousel />
         <div className="hero-shade" />
         <div className="hero-content">
           <p className="eyebrow">In loving memory</p>
@@ -65,3 +65,4 @@ export default function Home() {
   );
 }
 import MobileNav from './components/MobileNav';
+import HeroCarousel from './components/HeroCarousel';
