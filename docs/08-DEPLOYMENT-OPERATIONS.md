@@ -33,7 +33,20 @@
 - IAM 정책: `FatherMemorialPendingUploadOnly` (`pending/*`에 `s3:PutObject`만 허용)
 - IAM 사용자: `father-memorial-netlify-uploader` (콘솔 로그인 권한 없음)
 - Netlify 비공개 환경변수: AWS 키, 버킷, 리전, 업로드 활성화 값 등록 완료. 실제 값은 문서와 코드에 기록하지 않는다.
-- Netlify 업로드 함수 배포 완료. 관리자 인증, 제출 메타데이터 데이터베이스, CloudFront는 아직 연결하지 않았다.
+- Netlify 업로드·제출 완료·공개 조회 함수 배포 완료.
+- DynamoDB 테이블: `father-memorial-content` (온디맨드 과금, 시점 복구 활성화)
+- Cognito 관리자 사용자 풀: `ap-northeast-2_ftJFI6Pfw`
+- Cognito 앱 클라이언트: `5ej6m31ke38bv61c1iug2cr7ud`
+- 초기 관리자 이메일: `sung.gpslgx@gmail.com` (임시 비밀번호는 문서와 코드에 기록하지 않는다.)
+- 관리자 화면 `/admin`은 Cognito 로그인 후 제출 목록 조회, 승인·보류·비공개 처리를 제공한다.
+- 방문자 제출은 S3 `pending/`에 원본을 올린 뒤 DynamoDB에 `PENDING` 또는 `FAMILY` 상태로 기록된다.
+- 승인된 게시물은 S3 `published/`로 복사되고 `/api/memories`를 통해 공개 화면에 나타난다.
+- CloudFront와 자동 이미지 최적화는 아직 연결하지 않았다.
+
+### 현재 보관 자료
+
+- 은퇴식 가족사진 제출 1건을 `PENDING` 상태로 검토함에 연결했다.
+- 대표사진 후보 1번 원본을 `s3://father-memorial-media-905418126737/pending/hero-candidates/KakaoTalk_20260907_100458847.jpg`에 비공개 보관했다.
 
 AWS Budgets에는 모든 AWS 서비스를 대상으로 월 `US$20` 예산을 만들었다. 실제 비용이 `US$10`과 `US$20`을 초과할 때 AWS 계정 이메일로 알림을 보낸다. 알림만 제공하며 리소스를 자동 중지하지 않는다.
 
@@ -76,13 +89,13 @@ S3의 내구성이 높아도 실수로 삭제하거나 계정이 침해될 가�
 
 ## 다음 연결 순서
 
-1. Netlify 함수가 사용할 최소 권한 IAM 역할 또는 자격 증명 방식을 결정한다.
-2. 방문자 제출 기록을 저장할 데이터베이스 스키마를 확정한다.
-3. Netlify 함수가 짧게 유효한 S3 presigned URL을 발급하도록 구현한다.
-4. 일반 사용자는 한 번에 최대 10개, 관리자는 대량 업로드를 지원한다.
-5. 업로드 파일의 종류·크기를 서버에서 다시 검증하고 `pending/`에 저장한다.
-6. 관리자 승인 후 웹용 사본만 `published/` 경로로 전환한다.
-7. CloudFront를 통해 승인된 파일만 공개한다.
+1. [완료] Netlify 함수용 최소 권한 IAM 정책을 연결한다.
+2. [완료] 제출 기록용 DynamoDB와 관리자 인증용 Cognito를 만든다.
+3. [완료] 짧게 유효한 S3 presigned URL과 제출 완료 API를 구현한다.
+4. [완료] 일반 사용자는 한 번에 최대 10개를 업로드하도록 제한한다.
+5. [완료] 업로드 파일 종류·크기를 검증하고 `pending/`에 저장한다.
+6. [구현 완료·운영 확인 필요] 관리자 승인 시 `published/`로 복사하고 공개 목록에 연결한다.
+7. [다음 단계] 대표사진 최대 5장 관리, 썸네일·웹용 사본 자동 생성, CloudFront 배포를 구현한다.
 
 ## 보안 보류 항목
 

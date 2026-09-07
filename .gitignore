@@ -1,2 +1,7 @@
 # Local Netlify folder
 .netlify
+
+# Generated package and TypeScript caches
+.pnpm-store/
+**/tsconfig.tsbuildinfo
+.tools/

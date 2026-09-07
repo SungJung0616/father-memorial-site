@@ -21,6 +21,8 @@ export default function ContributePage(){
       if(!result.manifest)throw new Error('추억 정보 저장을 준비하지 못했습니다.');
       const manifestBody={version:1,submissionId:result.submissionId,submittedAt:new Date().toISOString(),sharing:result.sharing,contributor:result.contributor,consent:{providerRights:true,peopleNotice:true},files:result.uploads.map((ticket,index)=>({key:ticket.key,originalName:files[index].name,type:files[index].type,size:files[index].size}))};
       const manifestUpload=await fetch(result.manifest.url,{method:'PUT',headers:{'content-type':result.manifest.contentType},body:JSON.stringify(manifestBody)}); if(!manifestUpload.ok)throw new Error('추억 정보 저장에 실패했습니다.');
+      const complete=await fetch('/api/complete-submission',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(manifestBody)});
+      const completeResult=await complete.json() as {error?:string}; if(!complete.ok)throw new Error(completeResult.error||'가족 검토함 등록에 실패했습니다.');
       setDone(true);
     }catch(reason){setError(reason instanceof Error?reason.message:'잠시 후 다시 시도해 주세요.');}finally{setUploading(false);}
   }

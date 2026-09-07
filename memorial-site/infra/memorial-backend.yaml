@@ -1,0 +1,159 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Serverless backend for the Jung Younghoon memorial site
+
+Parameters:
+  AdminEmail:
+    Type: String
+    Default: sung.gpslgx@gmail.com
+  ExistingBucketName:
+    Type: String
+    Default: father-memorial-media-905418126737
+  ExistingNetlifyIamUser:
+    Type: String
+    Default: father-memorial-netlify-uploader
+
+Resources:
+  ContentTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: father-memorial-content
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: GSI1PK
+          AttributeType: S
+        - AttributeName: GSI1SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - AttributeName: GSI1PK
+              KeyType: HASH
+            - AttributeName: GSI1SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: father-memorial
+
+  AdminUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: father-memorial-admins
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 10
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+          RequireUppercase: true
+          TemporaryPasswordValidityDays: 7
+      UserPoolTags:
+        Project: father-memorial
+
+  AdminAppClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: father-memorial-netlify-admin
+      UserPoolId: !Ref AdminUserPool
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      EnableTokenRevocation: true
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+
+  AdminGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: admin
+      Description: Full memorial site administrators
+      UserPoolId: !Ref AdminUserPool
+      Precedence: 1
+
+  InitialAdmin:
+    Type: AWS::Cognito::UserPoolUser
+    Properties:
+      Username: !Ref AdminEmail
+      DesiredDeliveryMediums:
+        - EMAIL
+      ForceAliasCreation: false
+      UserPoolId: !Ref AdminUserPool
+      UserAttributes:
+        - Name: email
+          Value: !Ref AdminEmail
+        - Name: email_verified
+          Value: 'true'
+
+  InitialAdminGroupAttachment:
+    Type: AWS::Cognito::UserPoolUserToGroupAttachment
+    DependsOn: InitialAdmin
+    Properties:
+      GroupName: !Ref AdminGroup
+      Username: !Ref InitialAdmin
+      UserPoolId: !Ref AdminUserPool
+
+  NetlifyBackendPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: FatherMemorialNetlifyBackend
+      Description: Least privilege access for memorial Netlify functions
+      Users:
+        - !Ref ExistingNetlifyIamUser
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ListMemorialObjects
+            Effect: Allow
+            Action: s3:ListBucket
+            Resource: !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}
+            Condition:
+              StringLike:
+                s3:prefix:
+                  - pending/*
+                  - published/*
+          - Sid: ReadAndWriteMemorialObjects
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+            Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/pending/*
+              - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/published/*
+          - Sid: MemorialContentTable
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:Query
+              - dynamodb:UpdateItem
+            Resource:
+              - !GetAtt ContentTable.Arn
+              - !Sub ${ContentTable.Arn}/index/*
+
+Outputs:
+  ContentTableName:
+    Value: !Ref ContentTable
+  CognitoUserPoolId:
+    Value: !Ref AdminUserPool
+  CognitoAppClientId:
+    Value: !Ref AdminAppClient
+  AdminEmail:
+    Value: !Ref AdminEmail
