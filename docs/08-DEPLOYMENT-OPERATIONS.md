@@ -29,7 +29,11 @@
 - 버전 관리: 활성화
 - 비용 태그: `Project=father-memorial`
 - 수명 주기 규칙: 이전 객체 버전은 30일 후 영구 삭제하고, 완료되지 않은 멀티파트 업로드는 7일 후 제거
-- S3 버킷만 생성된 상태이며 Netlify 업로드, 관리자 인증, 데이터베이스, CloudFront는 아직 연결하지 않았다.
+- CORS: `https://father-memorial-test.netlify.app`와 로컬 개발 주소에서의 `PUT`만 허용
+- IAM 정책: `FatherMemorialPendingUploadOnly` (`pending/*`에 `s3:PutObject`만 허용)
+- IAM 사용자: `father-memorial-netlify-uploader` (콘솔 로그인 권한 없음)
+- Netlify 비공개 환경변수: AWS 키, 버킷, 리전, 업로드 활성화 값 등록 완료. 실제 값은 문서와 코드에 기록하지 않는다.
+- Netlify 업로드 함수 배포 완료. 관리자 인증, 제출 메타데이터 데이터베이스, CloudFront는 아직 연결하지 않았다.
 
 AWS Budgets에는 모든 AWS 서비스를 대상으로 월 `US$20` 예산을 만들었다. 실제 비용이 `US$10`과 `US$20`을 초과할 때 AWS 계정 이메일로 알림을 보낸다. 알림만 제공하며 리소스를 자동 중지하지 않는다.
 
