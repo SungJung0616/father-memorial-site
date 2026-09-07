@@ -7,6 +7,7 @@ const MAX_PHOTO_BYTES = 25 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
 
 type UploadFile = { name?: string; type?: string; size?: number };
+type Contributor = { name?: string; relationship?: string; memory?: string };
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -30,10 +31,12 @@ export default async function handler(request: Request) {
   const region = process.env.AWS_S3_REGION;
   if (!bucket || !region) return json({ error: '서버 저장소 설정이 완료되지 않았습니다.' }, 503);
 
-  let files: UploadFile[];
+  let files: UploadFile[]; let sharing = 'review'; let contributor: Contributor = {};
   try {
-    const body = await request.json() as { files?: UploadFile[] };
+    const body = await request.json() as { files?: UploadFile[]; sharing?: string; contributor?: Contributor };
     files = body.files ?? [];
+    sharing = body.sharing === 'family' ? 'family' : 'review';
+    contributor = body.contributor ?? {};
   } catch {
     return json({ error: '요청 형식이 올바르지 않습니다.' }, 400);
   }
@@ -52,13 +55,14 @@ export default async function handler(request: Request) {
   }
 
   const client = new S3Client({ region });
+  const submissionId = crypto.randomUUID();
+  const prefix = `pending/${new Date().toISOString().slice(0, 10)}/${submissionId}`;
   const uploads = await Promise.all(files.map(async (file) => {
-    const key = `pending/${new Date().toISOString().slice(0, 10)}/${safeName(file.name ?? 'upload')}`;
+    const key = `${prefix}/${safeName(file.name ?? 'upload')}`;
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
       ContentType: file.type,
-      Metadata: { originalname: encodeURIComponent((file.name ?? 'upload').slice(0, 180)) },
     });
     return {
       key,
@@ -67,7 +71,22 @@ export default async function handler(request: Request) {
     };
   }));
 
-  return json({ uploads });
+  const manifestKey = `${prefix}/submission.json`;
+  const manifestUrl = await getSignedUrl(client, new PutObjectCommand({
+    Bucket: bucket, Key: manifestKey, ContentType: 'application/json',
+  }), { expiresIn: 10 * 60 });
+
+  return json({
+    submissionId,
+    uploads,
+    manifest: { key: manifestKey, url: manifestUrl, contentType: 'application/json' },
+    contributor: {
+      name: String(contributor.name ?? '').slice(0, 80),
+      relationship: String(contributor.relationship ?? '').slice(0, 80),
+      memory: String(contributor.memory ?? '').slice(0, 5000),
+    },
+    sharing,
+  });
 }
 
 export const config = { path: '/api/create-upload-url' };
