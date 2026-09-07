@@ -31,7 +31,7 @@ export default function Home() {
         <div className="hero-content">
           <p className="eyebrow">In loving memory</p>
           <h1>故 정영훈님</h1>
-          <p className="dates">생몰 정보 확인 후 표시</p>
+          <p className="dates">1957. 10. 17. — 2026. 8. 24.</p>
           <blockquote>평생 학문과 가르침에 헌신하신 아버님의 따뜻한 마음과 빛나는 발자취를 오래도록 기억하겠습니다.</blockquote>
           <div className="hero-actions"><a className="primary-action" href="/community">추억 보기</a><a className="secondary-action" href="/contribute">사진 올리기</a></div>
         </div>
