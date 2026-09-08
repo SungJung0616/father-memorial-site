@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import AdminBulkUpload from './AdminBulkUpload';
 import HeroManager from './HeroManager';
+import MemberManager from './MemberManager';
 
 type AdminUser = { email: string; groups: string[] };
 type AdminSection = 'posts' | 'heroes' | 'upload' | 'members';
@@ -172,15 +173,7 @@ export default function AdminPage() {
       <header><div><p>{sectionKicker}</p><h1>{sectionTitle}</h1></div><div className="admin-account"><strong>{user.email}</strong><span>{roleNames.join(' · ') || '권한 확인 중'}</span><button onClick={logout}>로그아웃</button></div></header>
       {section === 'heroes' && canPublish && <HeroManager onGoUpload={() => setSection('upload')} />}
       {section === 'upload' && canPublish && <AdminBulkUpload onComplete={async () => { setStatus('PENDING'); setSection('posts'); await loadSubmissions('PENDING'); }} />}
-      {section === 'members' && isAdmin && <section className="member-management">
-        <div className="panel-heading"><div><span>현재 계정</span><h2>{user.email}</h2></div><strong>{roleNames.join(' · ')}</strong></div>
-        <div className="member-role-grid">
-          <article><strong>관리자</strong><p>회원과 권한을 관리하고 모든 게시물을 검토·공개합니다.</p></article>
-          <article><strong>가족 매니저</strong><p>사진을 대량 업로드하고 게시물을 검토·공개할 수 있습니다.</p></article>
-          <article><strong>검토 도우미</strong><p>제출된 자료를 확인할 수 있지만 공개 상태를 바꿀 수는 없습니다.</p></article>
-        </div>
-        <div className="member-setup-note"><strong>가족 계정 연결 준비 중</strong><p>어머니와 동생분의 이메일을 받은 뒤 AWS 로그인 계정을 만들고 역할을 지정하면 이 화면에서 관리할 수 있습니다. 아직 실제 초대 기능은 연결하지 않았습니다.</p></div>
-      </section>}
+      {section === 'members' && isAdmin && <MemberManager currentEmail={user.email} />}
       {section === 'posts' && <>
         {message && <div className="admin-notice" role="status">{message}</div>}
         <div className="admin-review-layout">

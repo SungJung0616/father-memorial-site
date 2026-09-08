@@ -45,6 +45,10 @@ export function cognitoClient() {
   return new CognitoIdentityProviderClient({ region: awsRegion() });
 }
 
+export function cognitoAdminClient() {
+  return new CognitoIdentityProviderClient({ region: awsRegion(), credentials: awsCredentials() });
+}
+
 export function tableName() {
   return requiredEnv('MEMORIAL_DYNAMODB_TABLE');
 }
@@ -85,7 +89,11 @@ export async function requireAdmin(request: Request) {
     const payload = await verifier.verify(token);
     const groups = Array.isArray(payload['cognito:groups']) ? payload['cognito:groups'] : [];
     if (!groups.some(group => ['admin', 'family', 'reviewer'].includes(String(group)))) throw new Error('UNAUTHORIZED');
-    return { email: String(payload.email ?? payload['cognito:username'] ?? ''), groups: groups.map(String) };
+    return {
+      email: String(payload.email ?? payload['cognito:username'] ?? ''),
+      username: String(payload['cognito:username'] ?? payload.sub ?? ''),
+      groups: groups.map(String),
+    };
   } catch {
     throw new Error('UNAUTHORIZED');
   }
