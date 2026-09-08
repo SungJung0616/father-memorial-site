@@ -88,6 +88,22 @@ Resources:
       UserPoolId: !Ref AdminUserPool
       Precedence: 1
 
+  FamilyManagerGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: family
+      Description: Family managers who can upload, edit, and approve memorial content
+      UserPoolId: !Ref AdminUserPool
+      Precedence: 2
+
+  ReviewerGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: reviewer
+      Description: Review assistants who can inspect and suggest metadata without final approval
+      UserPoolId: !Ref AdminUserPool
+      Precedence: 3
+
   InitialAdmin:
     Type: AWS::Cognito::UserPoolUser
     Properties:

@@ -23,7 +23,7 @@ export default function MobileNav({ language = 'ko' }: { language?: 'ko' | 'en' 
         <Link href="/#teaching" onClick={close}>{ko ? '가르침과 연구' : 'Teaching & Research'}</Link>
         <Link href="/#directions" onClick={close}>{ko ? '묘소·성묘 안내' : 'Visiting His Resting Place'}</Link>
         <Link href="/photos">{ko ? '사진첩' : 'Photo Archive'}</Link>
-        <Link href="/admin">{ko ? '관리자 로그인' : 'Administrator Login'}</Link>
+        <Link href="/admin">{ko ? '로그인' : 'Sign In'}</Link>
         <Link href={ko ? '/en' : '/'}>{ko ? 'English' : '한국어'}</Link>
       </nav>
     </div>}

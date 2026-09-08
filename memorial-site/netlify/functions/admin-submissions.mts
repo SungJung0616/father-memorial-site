@@ -43,6 +43,7 @@ export default async function handler(request: Request) {
     }
 
     if (request.method !== 'POST') return json({ error: '지원하지 않는 요청입니다.' }, 405);
+    if (!admin.groups.some(group => ['admin', 'family'].includes(group))) return json({ error: '최종 승인 권한이 필요합니다.' }, 403);
     const body = await request.json() as { submissionId?: string; action?: string; title?: string; memory?: string; category?: string };
     const submissionId = String(body.submissionId ?? '');
     if (!/^[0-9a-f-]{36}$/i.test(submissionId)) return json({ error: '제출 번호가 올바르지 않습니다.' }, 400);
