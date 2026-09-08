@@ -1,3 +1,5 @@
+import TeachingResearch from './components/TeachingResearch';
+
 const milestones = [
   { year: '1957', label: '서울 용산구 후암동 출생' },
   { year: '1981', label: '서울대학교 약학대학 제약학과 학사' },
@@ -61,7 +63,7 @@ export default function Home() {
         <div className="album-grid">{albums.map((album,index) => <article className={`album-card ${album.tone}`} key={album.title}><div className="album-placeholder" aria-label={`${album.title} 사진 자리`}><span>사진 {index+1}</span></div><p>{album.subtitle}</p><h3>{album.title}</h3></article>)}</div>
       </div></section>
 
-      <section className="legacy section-shell" id="teaching"><div className="legacy-mark" aria-hidden="true">學</div><div><p className="section-kicker">Teaching &amp; research</p><h2>가르침과 연구의 발자취</h2><p>새로운 유기반응과 효율적인 합성 경로를 탐구하며 약학과 유기합성 분야의 발전에 기여했습니다. 논문과 저서뿐 아니라 제자들의 기억 속 가르침도 함께 기록합니다.</p></div></section>
+      <TeachingResearch />
       <section className="directions section-shell home-visiting" id="directions">
         <div><p className="section-kicker">Visiting his resting place</p><h2>아버님 찾아가는 길</h2><p>천안공원 <strong>무학지구입구</strong>로 들어와 주세요.</p><p>입구 → 호수 → 백합 안내판 → 백합 38</p></div>
         <article className="directions-card"><p className="home-visit-label">찾아오실 입구</p><h3>천안공원 무학지구입구</h3><p className="home-visit-destination">아버님 계신 곳 · <strong>백합 38</strong></p><a href="/visiting">사진으로 길 안내 보기 →</a></article>
