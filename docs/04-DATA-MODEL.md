@@ -93,6 +93,10 @@ translation_status: draft | reviewed | published
 photo_ids: [uuid]
 visibility: public | unlisted | members | family | private
 moderation_status: submitted | reviewing | approved | rejected | archived
+pinned: boolean
+pin_starts_at: datetime | null
+pin_ends_at: datetime | null
+pinned_by: admin_user_id | null
 ```
 
 ## HeroSlide
@@ -119,3 +123,5 @@ updated_at: datetime
 - 업로드 원본은 비공개 저장소에 보존하고, 승인된 웹용 사본만 공개한다.
 - 콘텐츠 삭제 요청에 대응할 수 있도록 제공자·동의·승인 기록을 남긴다.
 - 대표사진은 최대 5장이고 관리자가 순서·설명·활성 상태를 변경한다.
+- 공개 승인된 사진 파일 하나를 추억 이야기와 사진첩이 함께 참조하며 화면별로 파일을 복제하지 않는다.
+- 고정 게시물은 시작·종료 시간을 저장하고 유효한 기간에만 일반 게시물보다 먼저 표시한다.

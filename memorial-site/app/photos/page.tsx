@@ -1,9 +1,22 @@
-const albums=[
-  {period:'1970년대',title:'학창 시절',count:128,tone:'warm',confidence:'촬영 정보 확인'},
-  {period:'1980–1989',title:'서울약대와 UCLA',count:86,tone:'blue',confidence:'AI 정리 · 검토 완료'},
-  {period:'1990–1999',title:'교수로서의 첫걸음',count:214,tone:'green',confidence:'AI 정리 · 일부 확인 필요'},
-  {period:'2000년대',title:'가르침과 연구의 시간',count:347,tone:'blue',confidence:'촬영 정보 확인'},
-  {period:'시기 미상',title:'함께 확인해주세요',count:42,tone:'warm',confidence:'친구와 제자의 도움이 필요해요'},
-];
+'use client';
 
-export default function PhotosPage(){return <main className="photos-page"><header><a href="/">← 故 정영훈님</a><div><p className="section-kicker">사진으로 보는 삶</p><h1>사진첩</h1><p>AI가 촬영 정보와 사진 내용을 바탕으로 시기별로 정리한 앨범입니다. 가족과 검토 매니저가 확인한 뒤 공개됩니다.</p></div><a href="/contribute">사진 보내기</a></header><nav className="photo-tabs" aria-label="사진 보기 방식"><button className="selected">앨범</button><button>추천 사진</button><button>전체 사진</button><button>사람·모임</button></nav><section className="archive-grid">{albums.map((album,index)=><article key={album.title}><div className={`archive-cover ${album.tone}`}><span>앨범 사진 {index+1}</span></div><div className="archive-info"><p>{album.period}</p><h2>{album.title}</h2><span>{album.count}장의 사진</span><small>{album.confidence}</small></div></article>)}</section></main>}
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+
+type Memory = { id: string; title: string; body: string; category: string; group: string; submittedAt: string; photos: { url: string; type: string }[] };
+const filters = ['전체', '가족', '친구', '제자', '교수·학계', '행사'];
+
+export default function PhotosPage(){
+  const [memories,setMemories]=useState<Memory[]>([]);
+  const [filter,setFilter]=useState('전체');
+  const [loading,setLoading]=useState(true);
+  const [error,setError]=useState('');
+  useEffect(()=>{fetch('/api/memories').then(async response=>{const result=await response.json() as {memories?:Memory[];error?:string};if(!response.ok)throw new Error(result.error||'사진을 불러오지 못했습니다.');setMemories(result.memories??[]);}).catch(reason=>setError(reason instanceof Error?reason.message:'사진을 불러오지 못했습니다.')).finally(()=>setLoading(false));},[]);
+  const visible=memories.filter(memory=>filter==='전체'||memory.category===filter||memory.group===filter).flatMap(memory=>memory.photos.map((photo,index)=>({...photo,id:`${memory.id}-${index}`,memoryId:memory.id,title:memory.title,body:memory.body,category:memory.category||memory.group,submittedAt:memory.submittedAt})));
+  return <main className="photos-page"><header><Link href="/">← 故 정영훈님</Link><div><p className="section-kicker">사진으로 보는 삶</p><h1>사진첩</h1><p>가족이 공개 승인한 추억 속 사진을 한곳에서 봅니다. 같은 사진 자료가 추억 이야기와 사진첩에 함께 연결됩니다.</p></div><Link href="/contribute">사진 보내기</Link></header>
+    <nav className="photo-tabs" aria-label="사진 분류">{filters.map(value=><button key={value} className={filter===value?'selected':''} onClick={()=>setFilter(value)}>{value}</button>)}</nav>
+    {loading&&<p className="community-state">사진을 불러오고 있습니다…</p>}{error&&<p className="community-state" role="alert">{error}</p>}
+    {!loading&&!error&&visible.length===0&&<section className="community-empty"><h2>{filter==='전체'?'아직 공개된 사진이 없습니다':`${filter} 분류의 사진이 없습니다`}</h2><p>승인된 추억에 포함된 사진이 이곳에 함께 나타납니다.</p><Link href="/contribute">사진과 추억 보내기</Link></section>}
+    <section className="published-photo-grid" aria-label="공개 사진 목록">{visible.map(photo=><Link href={`/community/story?id=${encodeURIComponent(photo.memoryId)}`} key={photo.id}><img src={photo.url} alt={photo.title}/><div><span>{photo.category}</span><h2>{photo.title}</h2><p>{photo.body||'사진과 함께 전해진 소중한 추억입니다.'}</p></div></Link>)}</section>
+  </main>;
+}

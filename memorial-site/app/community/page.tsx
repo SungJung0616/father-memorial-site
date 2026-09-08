@@ -11,6 +11,7 @@ type Memory = {
   body: string;
   category: string;
   photos: { url: string; type: string }[];
+  isPinned?: boolean;
 };
 
 export default function CommunityPage() {
@@ -44,11 +45,11 @@ export default function CommunityPage() {
     {!loading && !error && memories.length === 0 && <section className="community-empty"><h2>아직 공개된 추억이 없습니다</h2><p>보내주신 사진과 이야기는 가족이 확인하고 공개를 승인한 뒤 이곳에 나타납니다.</p><Link href="/contribute">사진과 추억 보내기</Link></section>}
 
     <section className="community-feed" aria-label="공개된 추억 목록">
-      {memories.slice(0, visible).map(memory => <article className="memory-card" key={memory.id}>
+      {memories.slice(0, visible).map(memory => <article className={memory.isPinned ? 'memory-card pinned' : 'memory-card'} key={memory.id}>
         <Link className="memory-card-link" href={`/community/story?id=${encodeURIComponent(memory.id)}`} aria-label={`${memory.title} 전체 내용 보기`}>
           <div className="memory-card-cover">{memory.photos[0] ? <img src={memory.photos[0].url} alt="" /> : <span aria-hidden="true">記憶</span>}</div>
           <div className="memory-card-copy">
-            <div className="post-meta"><span>{memory.category || memory.group}</span><span>{new Date(memory.submittedAt).toLocaleDateString('ko-KR')}</span></div>
+            <div className="post-meta"><span>{memory.isPinned ? '📌 중요 소식' : (memory.category || memory.group)}</span><span>{new Date(memory.submittedAt).toLocaleDateString('ko-KR')}</span></div>
             <h2>{memory.title}</h2>
             <p>{memory.body || '사진과 함께 전해진 소중한 추억입니다.'}</p>
             <strong>전체 이야기 보기 <span aria-hidden="true">→</span></strong>

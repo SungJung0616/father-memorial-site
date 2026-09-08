@@ -3,15 +3,17 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import AdminBulkUpload from './AdminBulkUpload';
+import HeroManager from './HeroManager';
 
 type AdminUser = { email: string; groups: string[] };
-type AdminSection = 'posts' | 'upload' | 'members';
+type AdminSection = 'posts' | 'heroes' | 'upload' | 'members';
 type SubmissionFile = { key: string; originalName: string; type: string; size: number; previewUrl?: string; publishedKey?: string };
 type Submission = {
   submissionId: string; status: string; sharing: string; submittedAt: string;
   contributor: { name: string; relationship: string; memory: string };
   consent: { providerRights: boolean; peopleNotice: boolean };
   files: SubmissionFile[]; titleKo?: string; memoryKo?: string; category?: string;
+  pinned?: boolean; pinStartsAt?: string; pinEndsAt?: string;
 };
 
 const statusLabels: Record<string, string> = { PENDING: '승인 대기', FAMILY: '가족 보관', PUBLISHED: '공개 완료', REJECTED: '공개하지 않음' };
@@ -40,6 +42,8 @@ export default function AdminPage() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkApproving, setBulkApproving] = useState(false);
+  const [pinStartsAt, setPinStartsAt] = useState('');
+  const [pinEndsAt, setPinEndsAt] = useState('');
 
   const loadSubmissions = useCallback(async (nextStatus: string) => {
     setLoading(true); setMessage('');
@@ -88,7 +92,21 @@ export default function AdminPage() {
   }
 
   async function logout() { await fetch('/api/admin/session', { method: 'DELETE' }); setUser(null); setSubmissions([]); }
-  function choose(item: Submission) { setSelected(item); setTitle(item.titleKo || ''); setMemory(item.memoryKo || item.contributor.memory || ''); setCategory(item.category || ''); setMessage(''); }
+  function toLocalInput(value?: string) { if (!value) return ''; const date = new Date(value); return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16); }
+  function choose(item: Submission) { setSelected(item); setTitle(item.titleKo || ''); setMemory(item.memoryKo || item.contributor.memory || ''); setCategory(item.category || ''); setPinStartsAt(toLocalInput(item.pinStartsAt)); setPinEndsAt(toLocalInput(item.pinEndsAt)); setMessage(''); }
+
+  async function updatePin(action: 'pin' | 'unpin') {
+    if (!selected) return;
+    if (action === 'unpin' && !window.confirm('이 게시물의 상단 고정을 해제할까요?')) return;
+    setLoading(true); setMessage('');
+    try {
+      const response = await fetch('/api/admin/submissions', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ submissionId: selected.submissionId, action, pinStartsAt: pinStartsAt ? new Date(pinStartsAt).toISOString() : '', pinEndsAt: pinEndsAt ? new Date(pinEndsAt).toISOString() : '' }) });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || '상단 고정 설정을 저장하지 못했습니다.');
+      await loadSubmissions('PUBLISHED'); setMessage(action === 'pin' ? '게시물을 지정한 기간 동안 상단에 고정했습니다.' : '게시물 고정을 해제했습니다.');
+    } catch (reason) { setMessage(reason instanceof Error ? reason.message : '상단 고정 설정을 저장하지 못했습니다.'); }
+    finally { setLoading(false); }
+  }
 
   async function review(action: 'approve' | 'family' | 'reject') {
     if (!selected) return;
@@ -135,8 +153,8 @@ export default function AdminPage() {
   const canPublish = user.groups.some(group => ['admin', 'family'].includes(group));
   const isAdmin = user.groups.includes('admin');
   const roleNames = user.groups.map(group => ({ admin: '관리자', family: '가족 매니저', reviewer: '검토 도우미' }[group] || group));
-  const sectionTitle = section === 'posts' ? statusLabels[status] : section === 'upload' ? '사진 대량 업로드' : '회원 관리';
-  const sectionKicker = section === 'posts' ? '게시물 관리' : section === 'upload' ? '사진·영상 보관' : '계정과 권한';
+  const sectionTitle = section === 'posts' ? statusLabels[status] : section === 'heroes' ? '대표사진 관리' : section === 'upload' ? '사진 대량 업로드' : '회원 관리';
+  const sectionKicker = section === 'posts' ? '게시물 관리' : section === 'heroes' ? '홈 화면 설정' : section === 'upload' ? '사진·영상 보관' : '계정과 권한';
 
   return <main className="admin-page">
     <aside className="admin-sidebar">
@@ -144,6 +162,7 @@ export default function AdminPage() {
       <nav aria-label="관리자 메뉴">
         <button className={`admin-section-button ${section === 'posts' ? 'active' : ''}`} onClick={() => setSection('posts')}><strong>게시물 관리</strong><small>검토·보관·공개</small></button>
         {section === 'posts' && <div className="admin-subnav">{Object.entries(statusLabels).map(([value, label]) => <button key={value} className={status === value ? 'active' : ''} onClick={() => { setStatus(value); loadSubmissions(value); }}>{label}</button>)}</div>}
+        {canPublish && <button className={`admin-section-button ${section === 'heroes' ? 'active' : ''}`} onClick={() => setSection('heroes')}><strong>대표사진 관리</strong><small>선택·순서·교체</small></button>}
         {canPublish && <button className={`admin-section-button ${section === 'upload' ? 'active' : ''}`} onClick={() => setSection('upload')}><strong>사진 대량 업로드</strong><small>여러 파일 한 번에</small></button>}
         {isAdmin && <button className={`admin-section-button ${section === 'members' ? 'active' : ''}`} onClick={() => setSection('members')}><strong>회원 관리</strong><small>가족·검토 권한</small></button>}
       </nav>
@@ -151,6 +170,7 @@ export default function AdminPage() {
     </aside>
     <section className="admin-workspace">
       <header><div><p>{sectionKicker}</p><h1>{sectionTitle}</h1></div><div className="admin-account"><strong>{user.email}</strong><span>{roleNames.join(' · ') || '권한 확인 중'}</span><button onClick={logout}>로그아웃</button></div></header>
+      {section === 'heroes' && canPublish && <HeroManager onGoUpload={() => setSection('upload')} />}
       {section === 'upload' && canPublish && <AdminBulkUpload onComplete={async () => { setStatus('PENDING'); setSection('posts'); await loadSubmissions('PENDING'); }} />}
       {section === 'members' && isAdmin && <section className="member-management">
         <div className="panel-heading"><div><span>현재 계정</span><h2>{user.email}</h2></div><strong>{roleNames.join(' · ')}</strong></div>
@@ -179,7 +199,7 @@ export default function AdminPage() {
             </button>;
           })}
         </section>
-        <section className="submission-detail">{selected ? <><div className="panel-heading"><div><span>검토</span><h2>{selected.contributor.name || '이름 없음'}</h2></div><strong>{statusLabels[selected.status]}</strong></div><div className="admin-photo-strip">{selected.files.map((file, index) => file.previewUrl && file.type.startsWith('image/') ? <img key={file.key} src={file.previewUrl} alt={`제출 사진 ${index + 1}`} /> : <div key={file.key}>{file.originalName}</div>)}</div><dl className="submission-facts"><div><dt>인연</dt><dd>{selected.contributor.relationship || '미입력'}</dd></div><div><dt>공개 요청</dt><dd>{selected.sharing === 'review' ? '사이트 공개 요청' : '가족에게만 전달'}</dd></div><div><dt>동의</dt><dd>{selected.consent.providerRights && selected.consent.peopleNotice ? '두 항목 확인' : '추가 확인 필요'}</dd></div></dl><label>공개 제목<input value={title} onChange={event => setTitle(event.target.value)} placeholder="예: 아버지 은퇴식 날의 가족사진" /></label><label>추억 이야기<textarea rows={6} value={memory} onChange={event => setMemory(event.target.value)} /></label><label>사진 분류<select value={category} onChange={event => setCategory(event.target.value)}><option value="">분류 선택</option><option>가족</option><option>친구</option><option>제자</option><option>교수·학계</option><option>행사</option></select></label>{selected.status === 'PENDING' && <div className="moderation-actions"><button onClick={() => review('reject')} disabled={loading}>공개하지 않음</button><button onClick={() => review('family')} disabled={loading}>가족 전용 보관</button><button className="approve" onClick={() => review('approve')} disabled={loading}>공개 승인</button></div>}</> : <div className="empty-state"><strong>제출물을 선택해 주세요</strong><p>왼쪽 목록에서 사진을 선택하면 내용과 동의를 확인할 수 있습니다.</p></div>}</section>
+        <section className="submission-detail">{selected ? <><div className="panel-heading"><div><span>검토</span><h2>{selected.contributor.name || '이름 없음'}</h2></div><strong>{statusLabels[selected.status]}</strong></div><div className="admin-photo-strip">{selected.files.map((file, index) => file.previewUrl && file.type.startsWith('image/') ? <img key={file.key} src={file.previewUrl} alt={`제출 사진 ${index + 1}`} /> : <div key={file.key}>{file.originalName}</div>)}</div><dl className="submission-facts"><div><dt>인연</dt><dd>{selected.contributor.relationship || '미입력'}</dd></div><div><dt>공개 요청</dt><dd>{selected.sharing === 'review' ? '사이트 공개 요청' : '가족에게만 전달'}</dd></div><div><dt>동의</dt><dd>{selected.consent.providerRights && selected.consent.peopleNotice ? '두 항목 확인' : '추가 확인 필요'}</dd></div></dl><label>공개 제목<input value={title} onChange={event => setTitle(event.target.value)} placeholder="예: 아버지 은퇴식 날의 가족사진" /></label><label>추억 이야기<textarea rows={6} value={memory} onChange={event => setMemory(event.target.value)} /></label><label>사진 분류<select value={category} onChange={event => setCategory(event.target.value)}><option value="">분류 선택</option><option>가족</option><option>친구</option><option>제자</option><option>교수·학계</option><option>행사</option></select></label>{selected.status === 'PENDING' && <div className="moderation-actions"><button onClick={() => review('reject')} disabled={loading}>공개하지 않음</button><button onClick={() => review('family')} disabled={loading}>가족 전용 보관</button><button className="approve" onClick={() => review('approve')} disabled={loading}>공개 승인</button></div>}{selected.status === 'PUBLISHED' && canPublish && <section className="pin-editor"><div><strong>{selected.pinned ? '📌 현재 고정 설정됨' : '게시물 상단 고정'}</strong><p>추석 성묘 소식이나 주기 추모 글을 지정한 기간 동안 추억 이야기 맨 위에 표시합니다.</p></div><label>고정 시작<input type="datetime-local" value={pinStartsAt} onChange={event => setPinStartsAt(event.target.value)} /></label><label>고정 종료 <span>비워두면 계속 유지</span><input type="datetime-local" value={pinEndsAt} onChange={event => setPinEndsAt(event.target.value)} /></label><div className="moderation-actions">{selected.pinned && <button onClick={() => updatePin('unpin')} disabled={loading}>고정 해제</button>}<button className="approve" onClick={() => updatePin('pin')} disabled={loading}>상단 고정 저장</button></div></section>}</> : <div className="empty-state"><strong>제출물을 선택해 주세요</strong><p>왼쪽 목록에서 사진을 선택하면 내용과 동의를 확인할 수 있습니다.</p></div>}</section>
         </div>
       </>}
     </section>

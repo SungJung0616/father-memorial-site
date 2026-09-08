@@ -9,6 +9,7 @@ type Submission = {
   contributor: { name: string; relationship: string; memory: string };
   consent: { providerRights: boolean; peopleNotice: boolean };
   files: StoredFile[];
+  pinned?: boolean; pinStartsAt?: string; pinEndsAt?: string;
 };
 
 async function withPreviews(item: Submission) {
@@ -44,13 +45,26 @@ export default async function handler(request: Request) {
 
     if (request.method !== 'POST') return json({ error: '지원하지 않는 요청입니다.' }, 405);
     if (!admin.groups.some(group => ['admin', 'family'].includes(group))) return json({ error: '최종 승인 권한이 필요합니다.' }, 403);
-    const body = await request.json() as { submissionId?: string; action?: string; title?: string; memory?: string; category?: string };
+    const body = await request.json() as { submissionId?: string; action?: string; title?: string; memory?: string; category?: string; pinStartsAt?: string; pinEndsAt?: string };
     const submissionId = String(body.submissionId ?? '');
     if (!/^[0-9a-f-]{36}$/i.test(submissionId)) return json({ error: '제출 번호가 올바르지 않습니다.' }, 400);
-    if (!['approve', 'reject', 'family'].includes(String(body.action))) return json({ error: '검토 작업이 올바르지 않습니다.' }, 400);
+    if (!['approve', 'reject', 'family', 'pin', 'unpin'].includes(String(body.action))) return json({ error: '검토 작업이 올바르지 않습니다.' }, 400);
     const current = await db.send(new GetCommand({ TableName: table, Key: { PK: `SUBMISSION#${submissionId}`, SK: 'META' } }));
     const item = current.Item as Submission | undefined;
     if (!item) return json({ error: '제출물을 찾을 수 없습니다.' }, 404);
+    if (body.action === 'pin' || body.action === 'unpin') {
+      if (item.status !== 'PUBLISHED') return json({ error: '공개 완료된 게시물만 고정할 수 있습니다.' }, 409);
+      const now = new Date().toISOString();
+      if (body.action === 'unpin') {
+        await db.send(new UpdateCommand({ TableName: table, Key: { PK: item.PK, SK: item.SK }, UpdateExpression: 'SET updatedAt = :updated, pinnedBy = :reviewedBy REMOVE pinned, pinStartsAt, pinEndsAt', ExpressionAttributeValues: { ':updated': now, ':reviewedBy': admin.email } }));
+        return json({ ok: true, pinned: false });
+      }
+      const starts = body.pinStartsAt && !Number.isNaN(Date.parse(body.pinStartsAt)) ? new Date(body.pinStartsAt).toISOString() : now;
+      const ends = body.pinEndsAt && !Number.isNaN(Date.parse(body.pinEndsAt)) ? new Date(body.pinEndsAt).toISOString() : undefined;
+      if (ends && Date.parse(ends) <= Date.parse(starts)) return json({ error: '고정 종료일은 시작일보다 뒤여야 합니다.' }, 400);
+      await db.send(new UpdateCommand({ TableName: table, Key: { PK: item.PK, SK: item.SK }, UpdateExpression: 'SET pinned = :pinned, pinStartsAt = :starts, pinEndsAt = :ends, pinnedAt = :updated, pinnedBy = :reviewedBy, updatedAt = :updated', ExpressionAttributeValues: { ':pinned': true, ':starts': starts, ':ends': ends || null, ':updated': now, ':reviewedBy': admin.email } }));
+      return json({ ok: true, pinned: true, pinStartsAt: starts, pinEndsAt: ends || '' });
+    }
     if (item.status !== 'PENDING') return json({ error: '이미 처리된 제출물입니다.' }, 409);
 
     const now = new Date().toISOString();

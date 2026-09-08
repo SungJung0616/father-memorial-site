@@ -12,6 +12,9 @@ type PublishedItem = {
   category?: string;
   contributor?: { name?: string; relationship?: string; memory?: string };
   publishedFiles?: { publishedKey: string; type: string }[];
+  pinned?: boolean;
+  pinStartsAt?: string;
+  pinEndsAt?: string;
 };
 
 export default async function handler(request: Request) {
@@ -28,6 +31,9 @@ export default async function handler(request: Request) {
       title: item.titleKo || '함께 나누는 추억',
       body: item.memoryKo || item.contributor?.memory || '',
       category: item.category || '',
+      pinned: Boolean(item.pinned),
+      pinStartsAt: item.pinStartsAt || '',
+      pinEndsAt: item.pinEndsAt || '',
       photos: await Promise.all((item.publishedFiles ?? []).filter((file: {type?: string}) => file.type?.startsWith('image/')).map(async (file: {publishedKey: string; type: string}) => ({
         url: await getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: file.publishedKey }), { expiresIn: 60 * 60 }),
         type: file.type,
@@ -52,7 +58,10 @@ export default async function handler(request: Request) {
       ScanIndexForward: false,
       Limit: 50,
     }));
-    const memories = await Promise.all((result.Items as PublishedItem[] ?? []).map(toMemory));
+    const now = Date.now();
+    const isActivePin = (item: PublishedItem) => Boolean(item.pinned) && (!item.pinStartsAt || Date.parse(item.pinStartsAt) <= now) && (!item.pinEndsAt || Date.parse(item.pinEndsAt) >= now);
+    const items = [...(result.Items as PublishedItem[] ?? [])].sort((a, b) => Number(isActivePin(b)) - Number(isActivePin(a)) || Date.parse(b.submittedAt || '') - Date.parse(a.submittedAt || ''));
+    const memories = await Promise.all(items.map(async item => ({ ...(await toMemory(item)), isPinned: isActivePin(item) })));
     return json({ memories }, 200, { 'cache-control': 'public, max-age=60' });
   } catch (error) {
     return handleError(error);
