@@ -34,7 +34,7 @@ export default async function handler(request: Request) {
       group: item.contributor?.relationship || '추억',
       submittedAt: item.submittedAt,
       title: item.titleKo || '함께 나누는 추억',
-      body: item.memoryKo || item.contributor?.memory || '',
+      body: item.memoryKo ?? item.contributor?.memory ?? '',
       category: item.category || '',
       pinned: Boolean(item.pinned),
       pinStartsAt: item.pinStartsAt || '',

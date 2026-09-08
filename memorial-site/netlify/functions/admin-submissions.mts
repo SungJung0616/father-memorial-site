@@ -50,10 +50,22 @@ export default async function handler(request: Request) {
     const body = await request.json() as { submissionId?: string; action?: string; title?: string; memory?: string; category?: string; pinStartsAt?: string; pinEndsAt?: string };
     const submissionId = String(body.submissionId ?? '');
     if (!/^[0-9a-f-]{36}$/i.test(submissionId)) return json({ error: '제출 번호가 올바르지 않습니다.' }, 400);
-    if (!['approve', 'reject', 'family', 'pin', 'unpin'].includes(String(body.action))) return json({ error: '검토 작업이 올바르지 않습니다.' }, 400);
+    if (!['approve', 'reject', 'family', 'pin', 'unpin', 'edit'].includes(String(body.action))) return json({ error: '검토 작업이 올바르지 않습니다.' }, 400);
     const current = await db.send(new GetCommand({ TableName: table, Key: { PK: `SUBMISSION#${submissionId}`, SK: 'META' } }));
     const item = current.Item as Submission | undefined;
     if (!item) return json({ error: '제출물을 찾을 수 없습니다.' }, 404);
+    if (body.action === 'edit') {
+      if (item.status !== 'PUBLISHED') return json({ error: '공개된 글만 수정할 수 있습니다.' }, 409);
+      if (typeof body.title !== 'string' || !body.title.trim() || body.title.length > 200 || typeof body.memory !== 'string' || body.memory.length > 5000) return json({ error: '제목은 1~200자, 본문은 5000자 이내로 입력해 주세요.' }, 400);
+      await db.send(new UpdateCommand({
+        TableName: table, Key: { PK: item.PK, SK: item.SK },
+        UpdateExpression: 'SET titleKo = :title, memoryKo = :memory',
+        ConditionExpression: '#status = :published',
+        ExpressionAttributeNames: { '#status': 'status' },
+        ExpressionAttributeValues: { ':title': body.title, ':memory': body.memory, ':published': 'PUBLISHED' },
+      }));
+      return json({ ok: true, title: body.title, memory: body.memory });
+    }
     if (body.action === 'pin' || body.action === 'unpin') {
       if (item.status !== 'PUBLISHED') return json({ error: '공개 완료된 게시물만 고정할 수 있습니다.' }, 409);
       const now = new Date().toISOString();
