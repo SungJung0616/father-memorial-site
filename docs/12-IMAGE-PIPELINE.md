@@ -70,3 +70,15 @@ pnpm images:backfill -- --all --execute --confirm-all
 - 새 필드가 없거나 `READY`가 아니면 `publishedKey`를 서명해 반환한다.
 - HERO 설정에는 계속 원래 `publishedKey`만 저장하므로 기존 설정과 유효성 검사가 유지된다.
 - HERO 응답을 만들 때 연결된 공개 파일의 `webKey`가 `READY`이면 그것을 표시하고, 아니면 원본을 표시한다.
+
+## 운영 배포 상태 — 2026-09-08
+
+- 서울 리전의 기존 상태를 먼저 확인했으며, 배포 전 동일 이름의 SQS 큐·DLQ·Lambda·실행 역할은 없었다.
+- 기존 백엔드 스택을 수정하지 않고 `father-memorial-image-pipeline` 전용 CloudFormation 스택으로 분리 배포했다.
+- 스택 상태: `CREATE_COMPLETE`
+- Netlify 함수 환경에 `MEMORIAL_IMAGE_QUEUE_URL`을 설정했다.
+- 제공된 JPEG 한 장으로 `pending/ → published/ → SQS → Lambda → web/ + thumb/ → DynamoDB READY` 흐름을 확인했다.
+- 테스트 결과: 원본 245,114 bytes, web 80,882 bytes, thumb 11,732 bytes. 파생 파일은 `image/webp`이며 S3 사용자 메타데이터는 비어 있다.
+- 공개 API는 목록에서 `thumb/`, 상세에서 `web/`을 반환했다.
+- 처리 직후 일반 큐와 DLQ의 대기 메시지는 모두 0건이었다.
+- 기존 공개 사진 backfill은 실행하지 않았다.

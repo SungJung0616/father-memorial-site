@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Isolated derived-image pipeline for the Jung Younghoon memorial site
+
+Parameters:
+  ExistingBucketName:
+    Type: String
+    Default: father-memorial-media-905418126737
+  ExistingTableName:
+    Type: String
+    Default: father-memorial-content
+  ExistingNetlifyIamUser:
+    Type: String
+    Default: father-memorial-netlify-uploader
+  ImageProcessorCodeKey:
+    Type: String
+    Default: infrastructure/image-processor.zip
+
+Resources:
+  ImageProcessingDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: father-memorial-image-processing-dlq
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Project
+          Value: father-memorial
+
+  ImageProcessingQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: father-memorial-image-processing
+      VisibilityTimeout: 900
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ImageProcessingDeadLetterQueue.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: father-memorial
+
+  ImageProcessorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: FatherMemorialImageProcessorRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ProcessMemorialImages
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/published/*
+              - Effect: Allow
+                Action: s3:PutObject
+                Resource:
+                  - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/web/*
+                  - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/thumb/*
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTableName}
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt ImageProcessingQueue.Arn
+
+  ImageProcessorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: father-memorial-image-processor
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Handler: handler.lambda_handler
+      Role: !GetAtt ImageProcessorRole.Arn
+      MemorySize: 2048
+      Timeout: 120
+      ReservedConcurrentExecutions: 2
+      Code:
+        S3Bucket: !Ref ExistingBucketName
+        S3Key: !Ref ImageProcessorCodeKey
+      Environment:
+        Variables:
+          MEMORIAL_S3_BUCKET: !Ref ExistingBucketName
+          MEMORIAL_DYNAMODB_TABLE: !Ref ExistingTableName
+      Tags:
+        - Key: Project
+          Value: father-memorial
+
+  ImageProcessorQueueMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt ImageProcessingQueue.Arn
+      FunctionName: !Ref ImageProcessorFunction
+      BatchSize: 1
+      FunctionResponseTypes:
+        - ReportBatchItemFailures
+      Enabled: true
+
+  NetlifyImagePipelinePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: FatherMemorialImagePipelineNetlify
+      Description: Least privilege for Netlify to queue and read derived memorial images
+      Users:
+        - !Ref ExistingNetlifyIamUser
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: QueueApprovedImages
+            Effect: Allow
+            Action: sqs:SendMessage
+            Resource: !GetAtt ImageProcessingQueue.Arn
+          - Sid: ReadDerivedImages
+            Effect: Allow
+            Action: s3:GetObject
+            Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/web/*
+              - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/thumb/*
+
+Outputs:
+  ImageProcessingQueueUrl:
+    Value: !Ref ImageProcessingQueue
+  ImageProcessingQueueArn:
+    Value: !GetAtt ImageProcessingQueue.Arn
+  ImageProcessingDeadLetterQueueUrl:
+    Value: !Ref ImageProcessingDeadLetterQueue
+  ImageProcessorFunctionName:
+    Value: !Ref ImageProcessorFunction

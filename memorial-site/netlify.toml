@@ -8,6 +8,8 @@
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["aws-jwt-verify"]
+  included_files = ["node_modules/aws-jwt-verify/**"]
 
 [[headers]]
   for = "/*"
