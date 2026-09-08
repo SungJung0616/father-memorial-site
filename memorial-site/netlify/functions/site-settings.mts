@@ -38,19 +38,28 @@ function cleanHero(value: unknown): HeroItem | null {
   };
 }
 
-async function withUrl(item: HeroItem) {
+type PublishedFile = { publishedKey?: string; webKey?: string; processingStatus?: string; type?: string };
+
+async function resolvePublishedFile(item: HeroItem, db: ReturnType<typeof documentClient>, table: string): Promise<PublishedFile | null> {
+  if (item.source === 'static') return null;
+  const match = item.key?.match(/^published\/([0-9a-f-]{36})\//i);
+  if (!match) return null;
+  const result = await db.send(new GetCommand({ TableName: table, Key: { PK: `SUBMISSION#${match[1]}`, SK: 'META' } }));
+  if (result.Item?.status !== 'PUBLISHED' || !Array.isArray(result.Item.publishedFiles)) return null;
+  return result.Item.publishedFiles.find((file: PublishedFile) => file.publishedKey === item.key && file.type?.startsWith('image/')) ?? null;
+}
+
+async function withUrl(item: HeroItem, db: ReturnType<typeof documentClient>, table: string) {
   if (item.source === 'static') return item;
-  const url = await getSignedUrl(s3Client(), new GetObjectCommand({ Bucket: requiredEnv('MEMORIAL_S3_BUCKET'), Key: item.key }), { expiresIn: 60 * 60 });
+  const file = await resolvePublishedFile(item, db, table);
+  const key = file?.processingStatus === 'READY' && file.webKey ? file.webKey : item.key;
+  const url = await getSignedUrl(s3Client(), new GetObjectCommand({ Bucket: requiredEnv('MEMORIAL_S3_BUCKET'), Key: key }), { expiresIn: 60 * 60 });
   return { ...item, url };
 }
 
 async function isCurrentlyPublished(item: HeroItem, db: ReturnType<typeof documentClient>, table: string) {
   if (item.source === 'static') return true;
-  const match = item.key?.match(/^published\/([0-9a-f-]{36})\//i);
-  if (!match) return false;
-  const result = await db.send(new GetCommand({ TableName: table, Key: { PK: `SUBMISSION#${match[1]}`, SK: 'META' } }));
-  if (result.Item?.status !== 'PUBLISHED' || !Array.isArray(result.Item.publishedFiles)) return false;
-  return result.Item.publishedFiles.some((file: { publishedKey?: string; type?: string }) => file.publishedKey === item.key && file.type?.startsWith('image/'));
+  return Boolean(await resolvePublishedFile(item, db, table));
 }
 
 async function validHeroes(items: HeroItem[], db: ReturnType<typeof documentClient>, table: string) {
@@ -69,16 +78,16 @@ export default async function handler(request: Request) {
       const result = await db.send(new GetCommand({ TableName: table, Key: { PK: 'CONFIG#SITE', SK: 'HERO' } }));
       const stored = Array.isArray(result.Item?.heroes) ? result.Item.heroes.map(cleanHero).filter(Boolean) as HeroItem[] : [];
       const activeStored = await validHeroes(stored, db, table);
-      const heroes = await Promise.all((activeStored.length ? activeStored : defaultHeroes).map(withUrl));
+      const heroes = await Promise.all((activeStored.length ? activeStored : defaultHeroes).map(item => withUrl(item, db, table)));
       if (!adminView) return json({ heroes }, 200, { 'cache-control': 'public, max-age=60' });
 
       const published = await db.send(new QueryCommand({
         TableName: table, IndexName: 'GSI1', KeyConditionExpression: 'GSI1PK = :status',
         ExpressionAttributeValues: { ':status': 'STATUS#PUBLISHED' }, ScanIndexForward: false, Limit: 100,
       }));
-      const candidates = (await Promise.all((published.Items ?? []).flatMap(item => (item.publishedFiles ?? []).filter((file: { type?: string }) => file.type?.startsWith('image/')).map(async (file: { publishedKey: string }, index: number) => ({
+      const candidates = (await Promise.all((published.Items ?? []).flatMap(item => (item.publishedFiles ?? []).filter((file: { type?: string }) => file.type?.startsWith('image/')).map(async (file: { publishedKey: string; webKey?: string; processingStatus?: string }, index: number) => ({
         id: `${item.submissionId}-${index}`, source: 's3' as const, key: file.publishedKey,
-        url: await getSignedUrl(s3Client(), new GetObjectCommand({ Bucket: requiredEnv('MEMORIAL_S3_BUCKET'), Key: file.publishedKey }), { expiresIn: 20 * 60 }),
+        url: await getSignedUrl(s3Client(), new GetObjectCommand({ Bucket: requiredEnv('MEMORIAL_S3_BUCKET'), Key: file.processingStatus === 'READY' && file.webKey ? file.webKey : file.publishedKey }), { expiresIn: 20 * 60 }),
         labelKo: item.titleKo || '정영훈 교수님 대표사진', labelEn: 'Professor Young Hoon Jung', focalX: 50, focalY: 50,
       }))))) as HeroItem[];
       return json({ heroes, candidates });
@@ -94,7 +103,7 @@ export default async function handler(request: Request) {
     if (activeHeroes.length !== heroes.length) return json({ error: '현재 공개 승인 상태가 아닌 사진이 포함되어 있습니다. 목록을 새로 불러온 뒤 다시 저장해 주세요.' }, 409);
     const now = new Date().toISOString();
     await db.send(new PutCommand({ TableName: table, Item: { PK: 'CONFIG#SITE', SK: 'HERO', entityType: 'SITE_CONFIG', heroes, updatedAt: now, updatedBy: admin.email } }));
-    return json({ ok: true, heroes: await Promise.all(heroes.map(withUrl)) });
+    return json({ ok: true, heroes: await Promise.all(heroes.map(item => withUrl(item, db, table))) });
   } catch (error) {
     return handleError(error);
   }

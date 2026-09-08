@@ -11,7 +11,7 @@ type PublishedItem = {
   memoryKo?: string;
   category?: string;
   contributor?: { name?: string; relationship?: string; memory?: string };
-  publishedFiles?: { publishedKey: string; type: string }[];
+  publishedFiles?: { publishedKey: string; webKey?: string; thumbKey?: string; processingStatus?: string; type: string }[];
   pinned?: boolean;
   pinStartsAt?: string;
   pinEndsAt?: string;
@@ -29,7 +29,7 @@ export default async function handler(request: Request) {
     if (requestedId && !/^[0-9a-f-]{36}$/i.test(requestedId)) return json({ error: '추억 번호가 올바르지 않습니다.' }, 400);
     const s3 = s3Client();
     const bucket = requiredEnv('MEMORIAL_S3_BUCKET');
-    const toMemory = async (item: PublishedItem) => ({
+    const toMemory = async (item: PublishedItem, imageVariant: 'thumb' | 'web') => ({
       id: item.submissionId,
       group: item.contributor?.relationship || '추억',
       submittedAt: item.submittedAt,
@@ -39,10 +39,14 @@ export default async function handler(request: Request) {
       pinned: Boolean(item.pinned),
       pinStartsAt: item.pinStartsAt || '',
       pinEndsAt: item.pinEndsAt || '',
-      photos: await Promise.all((item.publishedFiles ?? []).filter((file: {type?: string}) => file.type?.startsWith('image/')).map(async (file: {publishedKey: string; type: string}) => ({
-        url: await getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: file.publishedKey }), { expiresIn: 60 * 60 }),
-        type: file.type,
-      }))),
+      photos: await Promise.all((item.publishedFiles ?? []).filter(file => file.type?.startsWith('image/')).map(async file => {
+        const derivedKey = imageVariant === 'web' ? file.webKey : file.thumbKey;
+        const key = file.processingStatus === 'READY' && derivedKey ? derivedKey : file.publishedKey;
+        return {
+          url: await getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: key }), { expiresIn: 60 * 60 }),
+          type: key === file.publishedKey ? file.type : 'image/webp',
+        };
+      })),
     });
 
     if (requestedId) {
@@ -52,7 +56,7 @@ export default async function handler(request: Request) {
       }));
       const item = result.Item as PublishedItem | undefined;
       if (!item || item.status !== 'PUBLISHED') return json({ error: '공개된 추억을 찾을 수 없습니다.' }, 404);
-      return json({ memory: await toMemory(item) }, 200, publicCacheHeaders);
+      return json({ memory: await toMemory(item, 'web') }, 200, publicCacheHeaders);
     }
 
     const result = await documentClient().send(new QueryCommand({
@@ -66,7 +70,7 @@ export default async function handler(request: Request) {
     const now = Date.now();
     const isActivePin = (item: PublishedItem) => Boolean(item.pinned) && (!item.pinStartsAt || Date.parse(item.pinStartsAt) <= now) && (!item.pinEndsAt || Date.parse(item.pinEndsAt) >= now);
     const items = [...(result.Items as PublishedItem[] ?? [])].sort((a, b) => Number(isActivePin(b)) - Number(isActivePin(a)) || Date.parse(b.submittedAt || '') - Date.parse(a.submittedAt || ''));
-    const memories = await Promise.all(items.map(async item => ({ ...(await toMemory(item)), isPinned: isActivePin(item) })));
+    const memories = await Promise.all(items.map(async item => ({ ...(await toMemory(item, 'thumb')), isPinned: isActivePin(item) })));
     return json({ memories }, 200, publicCacheHeaders);
   } catch (error) {
     return handleError(error);

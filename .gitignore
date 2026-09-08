@@ -5,3 +5,6 @@
 .pnpm-store/
 **/tsconfig.tsbuildinfo
 .tools/
+memorial-site/infra/dist/
+.dependency-backups/
+**/__pycache__/

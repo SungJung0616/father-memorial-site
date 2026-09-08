@@ -11,6 +11,9 @@ Parameters:
   ExistingNetlifyIamUser:
     Type: String
     Default: father-memorial-netlify-uploader
+  ImageProcessorCodeKey:
+    Type: String
+    Default: infrastructure/image-processor.zip
 
 Resources:
   ContentTable:
@@ -145,6 +148,8 @@ Resources:
                 s3:prefix:
                   - pending/*
                   - published/*
+                  - web/*
+                  - thumb/*
           - Sid: ReadAndWriteMemorialObjects
             Effect: Allow
             Action:
@@ -153,6 +158,8 @@ Resources:
             Resource:
               - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/pending/*
               - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/published/*
+              - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/web/*
+              - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/thumb/*
           - Sid: MemorialContentTable
             Effect: Allow
             Action:
@@ -163,6 +170,109 @@ Resources:
             Resource:
               - !GetAtt ContentTable.Arn
               - !Sub ${ContentTable.Arn}/index/*
+          - Sid: QueueApprovedImages
+            Effect: Allow
+            Action: sqs:SendMessage
+            Resource: !GetAtt ImageProcessingQueue.Arn
+
+  ImageProcessingDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: father-memorial-image-processing-dlq
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Project
+          Value: father-memorial
+
+  ImageProcessingQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: father-memorial-image-processing
+      VisibilityTimeout: 900
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ImageProcessingDeadLetterQueue.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: father-memorial
+
+  ImageProcessorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: FatherMemorialImageProcessorRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ProcessMemorialImages
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/published/*
+              - Effect: Allow
+                Action: s3:PutObject
+                Resource:
+                  - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/web/*
+                  - !Sub arn:${AWS::Partition}:s3:::${ExistingBucketName}/thumb/*
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                Resource: !GetAtt ContentTable.Arn
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt ImageProcessingQueue.Arn
+
+  ImageProcessorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: father-memorial-image-processor
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Handler: handler.lambda_handler
+      Role: !GetAtt ImageProcessorRole.Arn
+      MemorySize: 2048
+      Timeout: 120
+      ReservedConcurrentExecutions: 2
+      Code:
+        S3Bucket: !Ref ExistingBucketName
+        S3Key: !Ref ImageProcessorCodeKey
+      Environment:
+        Variables:
+          MEMORIAL_S3_BUCKET: !Ref ExistingBucketName
+          MEMORIAL_DYNAMODB_TABLE: !Ref ContentTable
+      Tags:
+        - Key: Project
+          Value: father-memorial
+
+  ImageProcessorQueueMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt ImageProcessingQueue.Arn
+      FunctionName: !Ref ImageProcessorFunction
+      BatchSize: 1
+      FunctionResponseTypes:
+        - ReportBatchItemFailures
+      Enabled: true
 
 Outputs:
   ContentTableName:
@@ -173,3 +283,11 @@ Outputs:
     Value: !Ref AdminAppClient
   AdminEmail:
     Value: !Ref AdminEmail
+  ImageProcessingQueueUrl:
+    Value: !Ref ImageProcessingQueue
+  ImageProcessingQueueArn:
+    Value: !GetAtt ImageProcessingQueue.Arn
+  ImageProcessingDeadLetterQueueUrl:
+    Value: !Ref ImageProcessingDeadLetterQueue
+  ImageProcessorFunctionName:
+    Value: !Ref ImageProcessorFunction

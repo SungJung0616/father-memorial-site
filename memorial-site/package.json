@@ -9,6 +9,7 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "build:netlify": "next build",
+    "images:backfill": "node scripts/queue-image-backfill.mjs",
     "start": "vinext start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
   },
@@ -16,6 +17,7 @@
     "@aws-sdk/client-cognito-identity-provider": "^3.1127.0",
     "@aws-sdk/client-dynamodb": "^3.1127.0",
     "@aws-sdk/client-s3": "^3.1127.0",
+    "@aws-sdk/client-sqs": "^3.1127.0",
     "@aws-sdk/lib-dynamodb": "^3.1127.0",
     "@aws-sdk/s3-request-presigner": "^3.1127.0",
     "aws-jwt-verify": "^5.1.1",

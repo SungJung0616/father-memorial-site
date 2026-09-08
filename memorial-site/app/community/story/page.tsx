@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { loadPublicMemory, type PublicMemory } from '../../lib/publicMemories';
 
 function MemoryDetailContent() {
-  const id = useSearchParams().get('id') ?? '';
+  const id = useSearchParams()?.get('id') ?? '';
   const [memory, setMemory] = useState<PublicMemory | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [liked, setLiked] = useState(false);

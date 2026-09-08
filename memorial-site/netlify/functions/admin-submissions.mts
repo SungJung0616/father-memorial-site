@@ -1,9 +1,11 @@
 import { CopyObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import { GetCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { documentClient, handleError, json, requireAdmin, requiredEnv, s3Client, tableName } from './_shared.mts';
 
-type StoredFile = { key: string; originalName: string; type: string; size: number; publishedKey?: string };
+type ProcessingStatus = 'QUEUED' | 'READY' | 'FAILED' | 'NOT_APPLICABLE' | 'NOT_CONFIGURED';
+type StoredFile = { key: string; originalName: string; type: string; size: number; publishedKey?: string; webKey?: string; thumbKey?: string; processingStatus?: ProcessingStatus };
 type Submission = {
   PK: string; SK: string; submissionId: string; status: string; sharing: string; submittedAt: string;
   contributor: { name: string; relationship: string; memory: string };
@@ -78,7 +80,11 @@ export default async function handler(request: Request) {
         const publishedKey = `published/${submissionId}/${String(index + 1).padStart(3, '0')}${extension}`;
         const encodedSource = `${bucket}/${file.key.split('/').map(encodeURIComponent).join('/')}`;
         await s3.send(new CopyObjectCommand({ Bucket: bucket, CopySource: encodedSource, Key: publishedKey, ContentType: file.type, MetadataDirective: 'REPLACE' }));
-        return { ...file, publishedKey };
+        return {
+          ...file,
+          publishedKey,
+          processingStatus: file.type.startsWith('image/') ? (process.env.MEMORIAL_IMAGE_QUEUE_URL ? 'QUEUED' : 'NOT_CONFIGURED') : 'NOT_APPLICABLE',
+        };
       }));
     }
 
@@ -103,7 +109,30 @@ export default async function handler(request: Request) {
       ExpressionAttributeValues: values,
       ConditionExpression: '#status = :pending',
     }));
-    return json({ ok: true, status: nextStatus });
+    let imageProcessingQueued = false;
+    let imageProcessingWarning = '';
+    if (body.action === 'approve' && publishedFiles?.some(file => file.type.startsWith('image/'))) {
+      const queueUrl = process.env.MEMORIAL_IMAGE_QUEUE_URL;
+      if (queueUrl) {
+        try {
+          const queue = new SQSClient({ region: requiredEnv('MEMORIAL_AWS_REGION'), credentials: { accessKeyId: requiredEnv('MEMORIAL_AWS_ACCESS_KEY_ID'), secretAccessKey: requiredEnv('MEMORIAL_AWS_SECRET_ACCESS_KEY') } });
+          await queue.send(new SendMessageCommand({ QueueUrl: queueUrl, MessageBody: JSON.stringify({ submissionId }) }));
+          imageProcessingQueued = true;
+        } catch (queueError) {
+          console.error('Image processing queue failed; published originals remain available.', queueError);
+          publishedFiles = publishedFiles.map(file => file.type.startsWith('image/') ? { ...file, processingStatus: 'FAILED' } : file);
+          try {
+            await db.send(new UpdateCommand({ TableName: table, Key: { PK: item.PK, SK: item.SK }, UpdateExpression: 'SET publishedFiles = :publishedFiles', ExpressionAttributeValues: { ':publishedFiles': publishedFiles } }));
+          } catch (statusError) {
+            console.error('Could not mark image queue failure.', statusError);
+          }
+          imageProcessingWarning = '파생 이미지 처리를 예약하지 못해 원본 이미지로 공개되었습니다.';
+        }
+      } else {
+        imageProcessingWarning = '이미지 처리 큐가 설정되지 않아 원본 이미지로 공개되었습니다.';
+      }
+    }
+    return json({ ok: true, status: nextStatus, imageProcessingQueued, imageProcessingWarning });
   } catch (error) {
     return handleError(error);
   }
