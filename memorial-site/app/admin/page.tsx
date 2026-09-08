@@ -5,6 +5,7 @@ import Link from 'next/link';
 import AdminBulkUpload from './AdminBulkUpload';
 
 type AdminUser = { email: string; groups: string[] };
+type AdminSection = 'posts' | 'upload' | 'members';
 type SubmissionFile = { key: string; originalName: string; type: string; size: number; previewUrl?: string; publishedKey?: string };
 type Submission = {
   submissionId: string; status: string; sharing: string; submittedAt: string;
@@ -28,6 +29,7 @@ export default function AdminPage() {
   const [resetCode, setResetCode] = useState('');
   const [resetRequested, setResetRequested] = useState(false);
   const [status, setStatus] = useState('PENDING');
+  const [section, setSection] = useState<AdminSection>('posts');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Submission | null>(null);
@@ -130,13 +132,38 @@ export default function AdminPage() {
     <button className="admin-login-secondary" type="button" onClick={() => { setResetMode(value => !value); setResetRequested(false); setResetCode(''); setNewPassword(''); setLoginError(''); }}>{resetMode ? '로그인으로 돌아가기' : '임시 비밀번호가 만료되었거나 비밀번호를 잊으셨나요?'}</button>
   </form></main>;
 
+  const canPublish = user.groups.some(group => ['admin', 'family'].includes(group));
+  const isAdmin = user.groups.includes('admin');
+  const roleNames = user.groups.map(group => ({ admin: '관리자', family: '가족 매니저', reviewer: '검토 도우미' }[group] || group));
+  const sectionTitle = section === 'posts' ? statusLabels[status] : section === 'upload' ? '사진 대량 업로드' : '회원 관리';
+  const sectionKicker = section === 'posts' ? '게시물 관리' : section === 'upload' ? '사진·영상 보관' : '계정과 권한';
+
   return <main className="admin-page">
-    <aside className="admin-sidebar"><Link className="admin-brand" href="/">정영훈 교수님<br /><span>사이트 관리</span></Link><nav>{Object.entries(statusLabels).map(([value, label]) => <button key={value} className={status === value ? 'active' : ''} onClick={() => { setStatus(value); loadSubmissions(value); }}>{label}</button>)}</nav><Link className="back-site" href="/">← 공개 사이트 보기</Link></aside>
+    <aside className="admin-sidebar">
+      <Link className="admin-brand" href="/">정영훈 교수님<br /><span>사이트 관리</span></Link>
+      <nav aria-label="관리자 메뉴">
+        <button className={`admin-section-button ${section === 'posts' ? 'active' : ''}`} onClick={() => setSection('posts')}><strong>게시물 관리</strong><small>검토·보관·공개</small></button>
+        {section === 'posts' && <div className="admin-subnav">{Object.entries(statusLabels).map(([value, label]) => <button key={value} className={status === value ? 'active' : ''} onClick={() => { setStatus(value); loadSubmissions(value); }}>{label}</button>)}</div>}
+        {canPublish && <button className={`admin-section-button ${section === 'upload' ? 'active' : ''}`} onClick={() => setSection('upload')}><strong>사진 대량 업로드</strong><small>여러 파일 한 번에</small></button>}
+        {isAdmin && <button className={`admin-section-button ${section === 'members' ? 'active' : ''}`} onClick={() => setSection('members')}><strong>회원 관리</strong><small>가족·검토 권한</small></button>}
+      </nav>
+      <Link className="back-site" href="/">← 공개 사이트 보기</Link>
+    </aside>
     <section className="admin-workspace">
-      <header><div><p>실제 관리자 검토함</p><h1>{statusLabels[status]}</h1></div><div className="admin-account"><strong>{user.email}</strong><button onClick={logout}>로그아웃</button></div></header>
-      {user.groups.some(group => ['admin', 'family'].includes(group)) && <AdminBulkUpload onComplete={() => { setStatus('PENDING'); return loadSubmissions('PENDING'); }} />}
-      {message && <div className="admin-notice" role="status">{message}</div>}
-      <div className="admin-review-layout">
+      <header><div><p>{sectionKicker}</p><h1>{sectionTitle}</h1></div><div className="admin-account"><strong>{user.email}</strong><span>{roleNames.join(' · ') || '권한 확인 중'}</span><button onClick={logout}>로그아웃</button></div></header>
+      {section === 'upload' && canPublish && <AdminBulkUpload onComplete={async () => { setStatus('PENDING'); setSection('posts'); await loadSubmissions('PENDING'); }} />}
+      {section === 'members' && isAdmin && <section className="member-management">
+        <div className="panel-heading"><div><span>현재 계정</span><h2>{user.email}</h2></div><strong>{roleNames.join(' · ')}</strong></div>
+        <div className="member-role-grid">
+          <article><strong>관리자</strong><p>회원과 권한을 관리하고 모든 게시물을 검토·공개합니다.</p></article>
+          <article><strong>가족 매니저</strong><p>사진을 대량 업로드하고 게시물을 검토·공개할 수 있습니다.</p></article>
+          <article><strong>검토 도우미</strong><p>제출된 자료를 확인할 수 있지만 공개 상태를 바꿀 수는 없습니다.</p></article>
+        </div>
+        <div className="member-setup-note"><strong>가족 계정 연결 준비 중</strong><p>어머니와 동생분의 이메일을 받은 뒤 AWS 로그인 계정을 만들고 역할을 지정하면 이 화면에서 관리할 수 있습니다. 아직 실제 초대 기능은 연결하지 않았습니다.</p></div>
+      </section>}
+      {section === 'posts' && <>
+        {message && <div className="admin-notice" role="status">{message}</div>}
+        <div className="admin-review-layout">
         <section className="submission-list">
           <div className="panel-heading"><div><span>자료</span><h2>{loading ? '불러오는 중…' : `${submissions.length}건`}</h2></div><button onClick={() => loadSubmissions(status)} disabled={loading}>새로고침</button></div>
           {status === 'PENDING' && user.groups.some(group => ['admin', 'family'].includes(group)) && <div className="bulk-review-toolbar">
@@ -153,7 +180,8 @@ export default function AdminPage() {
           })}
         </section>
         <section className="submission-detail">{selected ? <><div className="panel-heading"><div><span>검토</span><h2>{selected.contributor.name || '이름 없음'}</h2></div><strong>{statusLabels[selected.status]}</strong></div><div className="admin-photo-strip">{selected.files.map((file, index) => file.previewUrl && file.type.startsWith('image/') ? <img key={file.key} src={file.previewUrl} alt={`제출 사진 ${index + 1}`} /> : <div key={file.key}>{file.originalName}</div>)}</div><dl className="submission-facts"><div><dt>인연</dt><dd>{selected.contributor.relationship || '미입력'}</dd></div><div><dt>공개 요청</dt><dd>{selected.sharing === 'review' ? '사이트 공개 요청' : '가족에게만 전달'}</dd></div><div><dt>동의</dt><dd>{selected.consent.providerRights && selected.consent.peopleNotice ? '두 항목 확인' : '추가 확인 필요'}</dd></div></dl><label>공개 제목<input value={title} onChange={event => setTitle(event.target.value)} placeholder="예: 아버지 은퇴식 날의 가족사진" /></label><label>추억 이야기<textarea rows={6} value={memory} onChange={event => setMemory(event.target.value)} /></label><label>사진 분류<select value={category} onChange={event => setCategory(event.target.value)}><option value="">분류 선택</option><option>가족</option><option>친구</option><option>제자</option><option>교수·학계</option><option>행사</option></select></label>{selected.status === 'PENDING' && <div className="moderation-actions"><button onClick={() => review('reject')} disabled={loading}>공개하지 않음</button><button onClick={() => review('family')} disabled={loading}>가족 전용 보관</button><button className="approve" onClick={() => review('approve')} disabled={loading}>공개 승인</button></div>}</> : <div className="empty-state"><strong>제출물을 선택해 주세요</strong><p>왼쪽 목록에서 사진을 선택하면 내용과 동의를 확인할 수 있습니다.</p></div>}</section>
-      </div>
+        </div>
+      </>}
     </section>
   </main>;
 }
