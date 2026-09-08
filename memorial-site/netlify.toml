@@ -8,7 +8,6 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["aws-jwt-verify", "@aws-sdk/client-cognito-identity-provider", "@aws-sdk/client-dynamodb", "@aws-sdk/lib-dynamodb", "@aws-sdk/client-s3", "@aws-sdk/client-sqs", "@aws-sdk/s3-request-presigner"]
 
 [[headers]]
   for = "/*"
