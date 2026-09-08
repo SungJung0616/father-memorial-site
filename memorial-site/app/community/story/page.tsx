@@ -3,20 +3,11 @@
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-
-type Memory = {
-  id: string;
-  group: string;
-  submittedAt: string;
-  title: string;
-  body: string;
-  category: string;
-  photos: { url: string; type: string }[];
-};
+import { loadPublicMemory, type PublicMemory } from '../../lib/publicMemories';
 
 function MemoryDetailContent() {
   const id = useSearchParams().get('id') ?? '';
-  const [memory, setMemory] = useState<Memory | null>(null);
+  const [memory, setMemory] = useState<PublicMemory | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -24,12 +15,8 @@ function MemoryDetailContent() {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`/api/memories?id=${encodeURIComponent(id)}`)
-      .then(async response => {
-        const result = await response.json() as { memory?: Memory; error?: string };
-        if (!response.ok || !result.memory) throw new Error(result.error || '추억을 찾을 수 없습니다.');
-        setMemory(result.memory);
-      })
+    loadPublicMemory(id)
+      .then(setMemory)
       .catch(reason => setError(reason instanceof Error ? reason.message : '추억을 찾을 수 없습니다.'))
       .finally(() => setLoading(false));
   }, [id]);

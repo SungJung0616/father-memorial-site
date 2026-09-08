@@ -2,32 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-
-type Memory = {
-  id: string;
-  group: string;
-  submittedAt: string;
-  title: string;
-  body: string;
-  category: string;
-  photos: { url: string; type: string }[];
-  isPinned?: boolean;
-};
+import { loadPublicMemories, type PublicMemory } from '../lib/publicMemories';
 
 export default function CommunityPage() {
-  const [memories, setMemories] = useState<Memory[]>([]);
+  const [memories, setMemories] = useState<PublicMemory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [liked, setLiked] = useState<Record<string, boolean>>({});
   const [visible, setVisible] = useState(8);
 
   useEffect(() => {
-    fetch('/api/memories')
-      .then(async response => {
-        const result = await response.json() as { memories?: Memory[]; error?: string };
-        if (!response.ok) throw new Error(result.error || '추억을 불러오지 못했습니다.');
-        setMemories(result.memories ?? []);
-      })
+    loadPublicMemories()
+      .then(setMemories)
       .catch(reason => setError(reason instanceof Error ? reason.message : '추억을 불러오지 못했습니다.'))
       .finally(() => setLoading(false));
   }, []);

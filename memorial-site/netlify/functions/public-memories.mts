@@ -17,6 +17,11 @@ type PublishedItem = {
   pinEndsAt?: string;
 };
 
+const publicCacheHeaders = {
+  'cache-control': 'public, max-age=60, stale-while-revalidate=120',
+  'netlify-cdn-cache-control': 'public, durable, s-maxage=300, stale-while-revalidate=300',
+};
+
 export default async function handler(request: Request) {
   if (request.method !== 'GET') return json({ error: 'GET 요청만 허용됩니다.' }, 405);
   try {
@@ -47,7 +52,7 @@ export default async function handler(request: Request) {
       }));
       const item = result.Item as PublishedItem | undefined;
       if (!item || item.status !== 'PUBLISHED') return json({ error: '공개된 추억을 찾을 수 없습니다.' }, 404);
-      return json({ memory: await toMemory(item) }, 200, { 'cache-control': 'public, max-age=60' });
+      return json({ memory: await toMemory(item) }, 200, publicCacheHeaders);
     }
 
     const result = await documentClient().send(new QueryCommand({
@@ -62,7 +67,7 @@ export default async function handler(request: Request) {
     const isActivePin = (item: PublishedItem) => Boolean(item.pinned) && (!item.pinStartsAt || Date.parse(item.pinStartsAt) <= now) && (!item.pinEndsAt || Date.parse(item.pinEndsAt) >= now);
     const items = [...(result.Items as PublishedItem[] ?? [])].sort((a, b) => Number(isActivePin(b)) - Number(isActivePin(a)) || Date.parse(b.submittedAt || '') - Date.parse(a.submittedAt || ''));
     const memories = await Promise.all(items.map(async item => ({ ...(await toMemory(item)), isPinned: isActivePin(item) })));
-    return json({ memories }, 200, { 'cache-control': 'public, max-age=60' });
+    return json({ memories }, 200, publicCacheHeaders);
   } catch (error) {
     return handleError(error);
   }

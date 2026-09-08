@@ -68,8 +68,10 @@ export default function Home() {
       </section>
       <section className="memory-invitation" id="memories"><p className="section-kicker">Share a memory</p><h2>교수님과의 기억을 들려주세요</h2><p>친구와 제자, 동료 여러분의 사진과 이야기가 이 공간을 더욱 깊게 만듭니다. 회원가입 없이 간단히 보내실 수 있습니다.</p><a className="memory-button" href="/contribute">추억과 사진 보내기</a></section>
       <footer><span>故 정영훈님</span><span>한국어 · English</span></footer><MobileNav language="ko" />
+      <MemoryPrefetch />
     </main>
   );
 }
 import MobileNav from './components/MobileNav';
 import HeroCarousel from './components/HeroCarousel';
+import MemoryPrefetch from './components/MemoryPrefetch';
