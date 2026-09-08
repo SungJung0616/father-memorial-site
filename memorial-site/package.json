@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
-    "build:netlify": "next build",
+    "build:netlify": "next build --webpack",
     "images:backfill": "node scripts/queue-image-backfill.mjs",
     "start": "vinext start",
     "lint": "eslint app netlify scripts eslint.config.mjs next.config.ts"

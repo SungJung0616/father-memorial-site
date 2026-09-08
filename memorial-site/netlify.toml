@@ -1,5 +1,5 @@
 [build]
-  command = "node node_modules/next/dist/bin/next build"
+  command = "node node_modules/next/dist/bin/next build --webpack"
   publish = "out"
   functions = "netlify/functions"
 
