@@ -6,6 +6,7 @@ import { documentClient, handleError, json, requiredEnv, s3Client, tableName } f
 type PublishedItem = {
   submissionId?: string;
   status?: string;
+  likeCount?: number;
   submittedAt?: string;
   titleKo?: string;
   memoryKo?: string;
@@ -31,6 +32,7 @@ export default async function handler(request: Request) {
     const bucket = requiredEnv('MEMORIAL_S3_BUCKET');
     const toMemory = async (item: PublishedItem, imageVariant: 'thumb' | 'web') => ({
       id: item.submissionId,
+      likeCount: item.likeCount ?? 0,
       group: item.contributor?.relationship || '추억',
       submittedAt: item.submittedAt,
       title: item.titleKo || '함께 나누는 추억',

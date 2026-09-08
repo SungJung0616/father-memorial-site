@@ -7,6 +7,7 @@ export type PublicMemory = {
   category: string;
   photos: { url: string; type: string }[];
   isPinned?: boolean;
+  likeCount?: number;
 };
 
 const CACHE_KEY = 'memorial-public-memories-v1';

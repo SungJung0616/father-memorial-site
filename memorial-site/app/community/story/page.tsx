@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
+import MemoryHeart from '../../components/MemoryHeart';
 import { useSearchParams } from 'next/navigation';
 import { loadPublicMemory, type PublicMemory } from '../../lib/publicMemories';
 
@@ -9,7 +10,6 @@ function MemoryDetailContent() {
   const id = useSearchParams()?.get('id') ?? '';
   const [memory, setMemory] = useState<PublicMemory | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
-  const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -34,7 +34,7 @@ function MemoryDetailContent() {
         {memory.photos.length > 1 && <div className="memory-photo-thumbs">{memory.photos.map((photo, index) => <button className={selectedPhoto === index ? 'selected' : ''} key={`${photo.url}-${index}`} onClick={() => setSelectedPhoto(index)} aria-label={`${index + 1}번째 사진 보기`}><img src={photo.url} alt="" /></button>)}</div>}
       </section>}
       <div className="memory-story"><p>{memory.body || '사진과 함께 전해진 소중한 추억입니다.'}</p></div>
-      <footer><button className={liked ? 'heart-button liked' : 'heart-button'} onClick={() => setLiked(value => !value)} aria-label={liked ? '하트 취소' : '하트 누르기'} aria-pressed={liked}>♥ <span>{liked ? '1' : '0'}</span></button><Link href="/contribute">나도 추억 남기기</Link></footer>
+      <footer><MemoryHeart id={memory.id} initialCount={memory.likeCount} /><Link href="/contribute">나도 추억 남기기</Link></footer>
     </article>
   </main>;
 }

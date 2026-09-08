@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import MemoryHeart from '../components/MemoryHeart';
 import { loadPublicMemories, type PublicMemory } from '../lib/publicMemories';
 
 export default function CommunityPage() {
   const [memories, setMemories] = useState<PublicMemory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [liked, setLiked] = useState<Record<string, boolean>>({});
   const [visible, setVisible] = useState(8);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function CommunityPage() {
             <strong>전체 이야기 보기 <span aria-hidden="true">→</span></strong>
           </div>
         </Link>
-        <div className="post-footer"><button className={liked[memory.id] ? 'heart-button liked' : 'heart-button'} onClick={() => setLiked(current => ({ ...current, [memory.id]: !current[memory.id] }))} aria-label={liked[memory.id] ? '하트 취소' : '하트 누르기'} aria-pressed={!!liked[memory.id]}>♥ <span>{liked[memory.id] ? '1' : '0'}</span></button><span>가족 확인 완료</span></div>
+        <div className="post-footer"><MemoryHeart id={memory.id} initialCount={memory.likeCount} /><span>가족 확인 완료</span></div>
       </article>)}
     </section>
     {visible < memories.length && <button className="load-more" onClick={() => setVisible(value => value + 8)}>추억 더 보기</button>}
