@@ -44,6 +44,20 @@ async function withUrl(item: HeroItem) {
   return { ...item, url };
 }
 
+async function isCurrentlyPublished(item: HeroItem, db: ReturnType<typeof documentClient>, table: string) {
+  if (item.source === 'static') return true;
+  const match = item.key?.match(/^published\/([0-9a-f-]{36})\//i);
+  if (!match) return false;
+  const result = await db.send(new GetCommand({ TableName: table, Key: { PK: `SUBMISSION#${match[1]}`, SK: 'META' } }));
+  if (result.Item?.status !== 'PUBLISHED' || !Array.isArray(result.Item.publishedFiles)) return false;
+  return result.Item.publishedFiles.some((file: { publishedKey?: string; type?: string }) => file.publishedKey === item.key && file.type?.startsWith('image/'));
+}
+
+async function validHeroes(items: HeroItem[], db: ReturnType<typeof documentClient>, table: string) {
+  const validity = await Promise.all(items.map(item => isCurrentlyPublished(item, db, table)));
+  return items.filter((_, index) => validity[index]);
+}
+
 export default async function handler(request: Request) {
   try {
     const db = documentClient();
@@ -54,7 +68,8 @@ export default async function handler(request: Request) {
       if (adminView) await requireAdmin(request);
       const result = await db.send(new GetCommand({ TableName: table, Key: { PK: 'CONFIG#SITE', SK: 'HERO' } }));
       const stored = Array.isArray(result.Item?.heroes) ? result.Item.heroes.map(cleanHero).filter(Boolean) as HeroItem[] : [];
-      const heroes = await Promise.all((stored.length ? stored : defaultHeroes).map(withUrl));
+      const activeStored = await validHeroes(stored, db, table);
+      const heroes = await Promise.all((activeStored.length ? activeStored : defaultHeroes).map(withUrl));
       if (!adminView) return json({ heroes }, 200, { 'cache-control': 'public, max-age=60' });
 
       const published = await db.send(new QueryCommand({
@@ -75,6 +90,8 @@ export default async function handler(request: Request) {
     const body = await request.json() as { heroes?: unknown[] };
     const heroes = Array.isArray(body.heroes) ? body.heroes.map(cleanHero).filter(Boolean) as HeroItem[] : [];
     if (heroes.length < 1 || heroes.length > 5) return json({ error: '대표사진은 1장 이상 5장 이하로 선택해 주세요.' }, 400);
+    const activeHeroes = await validHeroes(heroes, db, table);
+    if (activeHeroes.length !== heroes.length) return json({ error: '현재 공개 승인 상태가 아닌 사진이 포함되어 있습니다. 목록을 새로 불러온 뒤 다시 저장해 주세요.' }, 409);
     const now = new Date().toISOString();
     await db.send(new PutCommand({ TableName: table, Item: { PK: 'CONFIG#SITE', SK: 'HERO', entityType: 'SITE_CONFIG', heroes, updatedAt: now, updatedBy: admin.email } }));
     return json({ ok: true, heroes: await Promise.all(heroes.map(withUrl)) });
