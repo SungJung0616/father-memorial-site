@@ -31,7 +31,7 @@ export default function Home() {
             <a href="#life">교수님의 삶</a><a href="#teaching">가르침과 연구</a>
             <a href="/photos">사진첩</a><a href="#directions">묘소·성묘 안내</a><a href="/community">추억 이야기</a>
           </nav>
-          <a className="language-button" href="/en" aria-label="영어로 보기">EN</a>
+          <div className="header-actions"><a className="desktop-login" href="/admin">로그인</a><a className="language-button" href="/en" aria-label="영어로 보기">EN</a></div>
         </header>
         <HeroCarousel />
         <div className="hero-shade" />
