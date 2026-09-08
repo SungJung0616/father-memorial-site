@@ -5,13 +5,13 @@ import Image from 'next/image';
 export default function HeroCarousel({language='ko'}:{language?:'ko'|'en'}){
   const slides = language==='en' ? [
     { label: 'Portrait of Professor Young Hoon Jung', image: '/images/hero/jung-young-hoon-01.jpg' },
-    { label: 'Portrait 2 · With family' },
+    { label: 'Professor Young Hoon Jung performing music with friends', image: '/images/hero/jung-young-hoon-02.jpg' },
     { label: 'Portrait 3 · Among friends' },
     { label: 'Portrait 4 · Teaching and research' },
     { label: 'Portrait 5 · A moment to remember' },
   ] : [
     { label: '정영훈 교수님 대표사진', image: '/images/hero/jung-young-hoon-01.jpg' },
-    { label: '대표사진 2 · 가족과 함께' },
+    { label: '친구들과 함께 음악을 연주하시는 정영훈 교수님', image: '/images/hero/jung-young-hoon-02.jpg' },
     { label: '대표사진 3 · 친구들과 함께' },
     { label: '대표사진 4 · 가르침의 시간' },
     { label: '대표사진 5 · 기억하고 싶은 순간' },
