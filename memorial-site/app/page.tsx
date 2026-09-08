@@ -1,3 +1,4 @@
+import HomePhotos from './components/HomePhotos';
 import TeachingResearch from './components/TeachingResearch';
 
 const milestones = [
@@ -58,10 +59,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="photo-section" id="photos"><div className="section-shell">
-        <div className="section-heading"><div><p className="section-kicker">Life in photos</p><h2>사진으로 보는 삶</h2></div><a className="text-link" href="/photos">사진첩 보기 <span>→</span></a></div>
-        <div className="album-grid">{albums.map((album,index) => <article className={`album-card ${album.tone}`} key={album.title}><div className="album-placeholder" aria-label={`${album.title} 사진 자리`}><span>사진 {index+1}</span></div><p>{album.subtitle}</p><h3>{album.title}</h3></article>)}</div>
-      </div></section>
+      <HomePhotos />
 
       <TeachingResearch />
       <section className="directions section-shell home-visiting" id="directions">

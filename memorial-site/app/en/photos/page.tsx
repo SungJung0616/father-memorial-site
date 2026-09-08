@@ -1,0 +1,21 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { loadPublicMemories, type PublicMemory } from '../../lib/publicMemories';
+const filters = ['전체', '가족', '친구', '제자', '교수·학계', '행사'];
+
+export default function PhotosPage(){
+  const [memories,setMemories]=useState<PublicMemory[]>([]);
+  const [filter,setFilter]=useState('전체');
+  const [loading,setLoading]=useState(true);
+  const [error,setError]=useState('');
+  useEffect(()=>{loadPublicMemories().then(setMemories).catch(reason=>setError(reason instanceof Error?reason.message:'Unable to load photographs. Please refresh.')).finally(()=>setLoading(false));},[]);
+  const visible=memories.filter(memory=>filter==='전체'||memory.category===filter||memory.group===filter).flatMap(memory=>memory.photos.map((photo,index)=>({...photo,id:`${memory.id}-${index}`,memoryId:memory.id,title:memory.title,body:memory.body,category:memory.category||memory.group,submittedAt:memory.submittedAt})));
+  return <main className="photos-page"><header><Link href="/en">← In Memory of Professor Jung</Link><div><p className="section-kicker">Life in Photos</p><h1>Photo Archive</h1><p>가족이 공개 승인한 추억 속 사진을 한곳에서 봅니다. 같은 사진 자료가 추억 이야기와 Photo Archive에 함께 연결됩니다.</p></div><Link href="/contribute">Share Photos</Link></header>
+    <nav className="photo-tabs" aria-label="Photo categories">{filters.map(value=><button key={value} className={filter===value?'selected':''} onClick={()=>setFilter(value)}>{({ '전체': 'All', '가족': 'Family', '친구': 'Friends', '제자': 'Students', '교수·학계': 'Colleagues', '행사': 'Events' } as Record<string,string>)[value]}</button>)}</nav>
+    {loading&&<p className="community-state">Loading photographs…</p>}{error&&<p className="community-state" role="alert">{error}</p>}
+    {!loading&&!error&&visible.length===0&&<section className="community-empty"><h2>{filter==='전체'?'No photographs have been published yet':'No photographs in this category yet'}</h2><p>Photographs will appear here after family approval.</p><Link href="/contribute">Share a Memory</Link></section>}
+    <section className="published-photo-grid" aria-label="Published photographs">{visible.map(photo=><Link href={`/community/story?id=${encodeURIComponent(photo.memoryId)}`} key={photo.id}><img src={photo.url} alt={photo.title}/><div><span>{({ '가족': 'Family', '가족·친지': 'Family', '친구': 'Friends', '제자': 'Students', '교수·학계': 'Colleagues', '행사': 'Events' } as Record<string,string>)[photo.category] || 'Memories'}</span><h2>{photo.title}</h2><p>{photo.body||'A cherished memory shared with this photograph.'}</p></div></Link>)}</section>
+  </main>;
+}
