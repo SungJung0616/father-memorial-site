@@ -1,0 +1,7 @@
+.legacy.research-section {
+  padding-bottom: clamp(56px, 5vw, 72px);
+}
+
+.directions.home-visiting {
+  padding-top: clamp(48px, 5vw, 64px);
+}
