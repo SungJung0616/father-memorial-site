@@ -25,18 +25,16 @@ export default function HomeMemories({ language = 'ko' }: { language?: 'ko' | 'e
     const storyHref = `/community/story?id=${encodeURIComponent(memory.id)}${en ? '&lang=en' : ''}`;
     return <article key={memory.id} className={`shared-story${featured ? ' shared-feature' : ' shared-secondary'}${memory.photos.length ? ' with-photo' : ' words-only'}`}>
     <div className="shared-story-layout">
-      <Link className="shared-media-link" href={storyHref} aria-label={memory.title}>
+      {featured && <Link className="shared-media-link" href={storyHref} aria-label={memory.title}>
       <div className="shared-story-media">
         {memory.photos[0] ? <img className="shared-story-photo" src={memory.photos[0].url} alt="" loading="lazy" /> : <span className="shared-quote" aria-hidden="true">“</span>}
       </div>
-      </Link>
-      <div className="shared-heart-row"><MemoryHeart id={memory.id} initialCount={memory.likeCount} language={language} /></div>
-      <Link className="shared-copy-link" href={storyHref}>
+      </Link>}
+      {featured && <div className="shared-heart-row"><MemoryHeart id={memory.id} initialCount={memory.likeCount} language={language} /></div>}
       <div className="shared-story-copy"><p className="shared-connection">{connection(memory.group)}</p><h3>{memory.title}</h3>
         <p className="shared-excerpt">{memory.body || (en ? 'A moment remembered in photographs.' : '사진으로 전해진 소중한 순간입니다.')}</p>
-        <div className="shared-story-end"><span>{en ? 'Read the Memory' : '이야기 읽기'} <span aria-hidden="true">→</span></span></div>
+        <div className="shared-story-end"><Link href={storyHref}>{en ? 'Read the Memory' : '이야기 읽기'} <span aria-hidden="true">→</span></Link>{!featured && <MemoryHeart id={memory.id} initialCount={memory.likeCount} language={language} />}</div>
       </div>
-      </Link>
     </div>
   </article>;
   };
