@@ -8,7 +8,8 @@ function visitor() {
   if (!id) { id = crypto.randomUUID(); localStorage.setItem(key, id); }
   return id;
 }
-export default function MemoryHeart({ id, initialCount = 0 }: { id: string; initialCount?: number }) {
+export default function MemoryHeart({ id, initialCount = 0, language = 'ko' }: { id: string; initialCount?: number; language?: 'ko' | 'en' }) {
+  const en = language === 'en';
   const [state, setState] = useState({ count: initialCount, liked: false });
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -22,10 +23,10 @@ export default function MemoryHeart({ id, initialCount = 0 }: { id: string; init
         if (!response.ok) throw new Error();
         const result = await response.json() as { count: number; liked: boolean };
         if (active) { setState(result); setReady(true); }
-      } catch { if (active) setError('하트를 불러오지 못했습니다. 새로고침해 주세요.'); }
+      } catch { if (active) setError(en ? 'We could not load this reaction. Please refresh the page.' : '하트를 불러오지 못했습니다. 새로고침해 주세요.'); }
     }
     void load(); return () => { active = false; };
-  }, [id]);
+  }, [id, en]);
   async function toggle() {
     if (lock.current || !ready) return;
     lock.current = true; setBusy(true); setError('');
@@ -36,8 +37,8 @@ export default function MemoryHeart({ id, initialCount = 0 }: { id: string; init
       if (!response.ok) throw new Error();
       setState(await response.json() as { count: number; liked: boolean });
       invalidatePublicMemories();
-    } catch { setState(previous); setError('저장하지 못했습니다. 다시 눌러 주세요.'); }
+    } catch { setState(previous); setError(en ? 'We could not save your reaction. Please try again.' : '저장하지 못했습니다. 다시 눌러 주세요.'); }
     finally { lock.current = false; setBusy(false); }
   }
-  return <div><button className={state.liked ? 'heart-button liked' : 'heart-button'} disabled={!ready || busy} onClick={toggle} aria-label={state.liked ? '하트 취소' : '하트 누르기'} aria-pressed={state.liked}>♥ <span>{state.count}</span></button>{error && <small role="alert">{error}</small>}</div>;
+  return <div><button className={state.liked ? 'heart-button liked' : 'heart-button'} disabled={!ready || busy} onClick={toggle} aria-label={state.liked ? (en ? 'Remove heart' : '하트 취소') : (en ? 'Add a heart' : '하트 누르기')} aria-pressed={state.liked}>♥ <span>{state.count}</span></button>{error && <small role="alert">{error}</small>}</div>;
 }

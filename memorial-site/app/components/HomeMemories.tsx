@@ -18,6 +18,7 @@ export default function HomeMemories({ language = 'ko' }: { language?: 'ko' | 'e
   }, []);
   const memories = selectHomeMemories(items);
   const contribute = en ? '/en/contribute' : '/contribute';
+  const allMemories = en ? '/community?lang=en' : '/community';
   const connection = (value: string) => en ? ({ '가족': 'Family', '가족·친지': 'Family', '친구': 'Friend', '제자': 'Student', '동료': 'Colleague', '교수·학계': 'Colleague', '기타': 'A shared connection', '추억': 'A shared memory' } as Record<string, string>)[value] || value : value;
   return <>
     <section className="shared-memories section-shell" id="shared-memories" aria-labelledby="shared-heading">
@@ -26,7 +27,7 @@ export default function HomeMemories({ language = 'ko' }: { language?: 'ko' | 'e
       {status === 'error' && <p role="alert">{en ? 'We could not load the memories. Please refresh to try again.' : '추억을 불러오지 못했습니다. 새로고침해 주세요.'}</p>}
       {status === 'ready' && memories.length === 0 && <p>{en ? 'Memories will appear here after the family has reviewed them. You are welcome to share yours.' : '가족이 확인한 추억이 이곳에 모입니다. 당신의 기억도 들려주세요.'}</p>}
       <div className="shared-editorial">{memories.map((memory, index) => <article key={memory.id} className={`shared-story${index === 0 ? ' shared-feature' : ''}${memory.photos.length ? ' with-photo' : ' words-only'}`}>
-        <Link className="shared-story-link" href={`/community/story?id=${encodeURIComponent(memory.id)}`}>
+        <Link className="shared-story-link" href={`/community/story?id=${encodeURIComponent(memory.id)}${en ? '&lang=en' : ''}`}>
           {memory.photos[0] && <img className="shared-story-photo" src={memory.photos[0].url} alt="" loading="lazy" />}
           <div className="shared-story-copy"><p className="shared-connection">{connection(memory.group)}</p><h3>{memory.title}</h3>
             {!memory.photos.length && <span className="shared-quote" aria-hidden="true">“</span>}
@@ -35,7 +36,7 @@ export default function HomeMemories({ language = 'ko' }: { language?: 'ko' | 'e
           </div>
         </Link>
       </article>)}</div>
-      <div className="shared-closing"><Link className="text-link" href="/community">{en ? 'View All Memories →' : '모든 추억 보기 →'}</Link><div><p>{en ? 'Has a memory come to mind? Your words are welcome, with or without a photograph.' : '떠오르는 기억이 있으신가요? 사진 없이 글만 남겨주셔도 좋습니다.'}</p><Link className="text-link" href={contribute}>{en ? 'Share Your Memory →' : '나의 추억 나누기 →'}</Link></div></div>
+      <div className="shared-closing"><Link className="text-link" href={allMemories}>{en ? 'View All Memories →' : '모든 추억 보기 →'}</Link><div><p>{en ? 'Has a memory come to mind? Your words are welcome, with or without a photograph.' : '떠오르는 기억이 있으신가요? 사진 없이 글만 남겨주셔도 좋습니다.'}</p><Link className="text-link" href={contribute}>{en ? 'Share Your Memory →' : '나의 추억 나누기 →'}</Link></div></div>
     </section>
     <HomePhotos language={language} items={items} status={status} />
   </>;
