@@ -1,4 +1,4 @@
-import HomePhotos from './components/HomePhotos';
+import HomeMemories from './components/HomeMemories';
 import TeachingResearch from './components/TeachingResearch';
 
 const milestones = [
@@ -15,15 +15,9 @@ const milestones = [
   { year: '2026', label: '8월 24일, 사랑하는 이들의 곁을 떠나 영면' },
 ];
 
-const albums = [
-  { title: '가족과 함께', subtitle: 'Family', tone: 'warm' },
-  { title: '친구들과의 시간', subtitle: 'Friends', tone: 'blue' },
-  { title: '가르침과 연구', subtitle: 'Teaching & Research', tone: 'green' },
-];
-
 export default function Home() {
   return (
-    <main>
+    <main className="memory-home">
       <section className="hero" id="home">
         <header className="site-header">
           <a className="wordmark" href="#home" aria-label="홈으로 이동">
@@ -31,8 +25,8 @@ export default function Home() {
             <span className="wordmark-en">In loving memory</span>
           </a>
           <nav className="desktop-nav" aria-label="주요 메뉴">
-            <a href="#life">교수님의 삶</a><a href="#teaching">가르침과 연구</a>
-            <a href="/photos">사진첩</a><a href="/visiting">아버님 찾아가는 길</a><a href="/community">추억 이야기</a>
+            <a href="#shared-memories">추억 이야기</a><a href="#life">아버님의 삶</a><a href="#teaching">가르침과 연구</a>
+            <a href="/photos">사진첩</a><a href="/visiting">아버님 찾아가는 길</a>
           </nav>
           <div className="header-actions"><a className="desktop-login" href="/admin">로그인</a><a className="language-button" href="/en" aria-label="영어로 보기">EN</a></div>
         </header>
@@ -42,11 +36,13 @@ export default function Home() {
           <p className="eyebrow">In loving memory</p>
           <h1>故 정영훈님</h1>
           <p className="dates">1957. 10. 17. — 2026. 8. 24.</p>
-          <blockquote>평생 학문과 가르침에 헌신하신 아버님의 따뜻한 마음과 빛나는 발자취를 오래도록 기억하겠습니다.</blockquote>
-          <div className="hero-actions"><a className="primary-action" href="/community">추억 보기</a><a className="secondary-action" href="/contribute">사진 올리기</a></div>
+          <blockquote>기억은 함께 나눌수록 오래 남습니다.</blockquote><p className="hero-support">가족과 친구, 제자와 동료가 기억하는 정영훈 교수님의 이야기를 함께 나눕니다.</p>
+          <div className="hero-actions"><a className="primary-action" href="#shared-memories">추억 읽기</a><a className="secondary-action" href="/contribute">추억 나누기</a></div>
         </div>
-        <a className="scroll-cue" href="#life" aria-label="다음 내용으로 이동"><span />천천히 내려보기</a>
+        <a className="scroll-cue" href="#shared-memories" aria-label="다음 내용으로 이동"><span />천천히 내려보기</a>
       </section>
+
+      <HomeMemories />
 
       <section className="intro section-shell" id="life">
         <p className="section-kicker">A life of scholarship and devotion</p>
@@ -59,19 +55,17 @@ export default function Home() {
         </div>
       </section>
 
-      <HomePhotos />
+
 
       <TeachingResearch />
       <section className="directions section-shell home-visiting" id="directions">
         <div><p className="section-kicker">Visiting his resting place</p><h2>아버님 찾아가는 길</h2><p>천안공원 <strong>무학지구입구</strong>로 들어와 주세요.</p><p>입구 → 호수 → 백합 안내판 → 백합 38</p></div>
         <article className="directions-card"><p className="home-visit-label">찾아오실 입구</p><h3>천안공원 무학지구입구</h3><p className="home-visit-destination">아버님 계신 곳 · <strong>백합 38</strong></p><a href="/visiting">사진으로 길 안내 보기 →</a></article>
       </section>
-      <section className="memory-invitation" id="memories"><p className="section-kicker">Share a memory</p><h2>교수님과의 기억을 들려주세요</h2><p>친구와 제자, 동료 여러분의 사진과 이야기가 이 공간을 더욱 깊게 만듭니다. 회원가입 없이 간단히 보내실 수 있습니다.</p><a className="memory-button" href="/contribute">추억과 사진 보내기</a></section>
+      <section className="memory-invitation closing-invitation" id="memories"><h2>당신이 기억하는 이야기도 이곳에 함께 남겨주세요.</h2><p>사진이 없어도 괜찮습니다.</p><a className="memory-button" href="/contribute">추억 나누기 →</a></section>
       <footer><span>故 정영훈님</span><span>한국어 · English</span></footer><MobileNav language="ko" />
-      <MemoryPrefetch />
     </main>
   );
 }
 import MobileNav from './components/MobileNav';
 import HeroCarousel from './components/HeroCarousel';
-import MemoryPrefetch from './components/MemoryPrefetch';
