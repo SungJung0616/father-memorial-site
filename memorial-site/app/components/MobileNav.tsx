@@ -11,7 +11,7 @@ export default function MobileNav({ language = 'ko' }: { language?: 'ko' | 'en' 
   return <>
     <nav className="mobile-bottom-nav" aria-label={ko ? '모바일 바로가기' : 'Mobile shortcuts'}>
       <Link href="/community"><span aria-hidden="true">♥</span><strong>{ko ? '추억 보기' : 'Memories'}</strong></Link>
-      <Link href="/contribute"><span aria-hidden="true">＋</span><strong>{ko ? '사진 올리기' : 'Share'}</strong></Link>
+      <Link href={ko ? '/contribute' : '/en/contribute'}><span aria-hidden="true">＋</span><strong>{ko ? '추억 보내기' : 'Share'}</strong></Link>
       <Link href="/community#notices"><span aria-hidden="true">●</span><strong>{ko ? '모임·소식' : 'News'}</strong></Link>
       <button type="button" onClick={() => setOpen(true)} aria-expanded={open}><span aria-hidden="true">☰</span><strong>{ko ? '더보기' : 'More'}</strong></button>
     </nav>

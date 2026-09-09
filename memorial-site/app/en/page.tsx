@@ -20,7 +20,7 @@ export default function EnglishHome(){
     <HomePhotos language="en" />
     <TeachingResearch language="en" />
     <section className="directions section-shell home-visiting" id="directions"><div><p className="section-kicker">Visiting his resting place</p><h2>Visiting His Resting Place</h2><p>Please use the <strong>Muhak District Entrance</strong> at Cheonan Park.</p><p>Entrance → Lake → Baekhap sign → Baekhap 38</p></div><article className="directions-card"><p className="home-visit-label">Entrance to use</p><h3>Cheonan Park · Muhak District Entrance</h3><p lang="ko">천안공원 무학지구입구</p><p className="home-visit-destination">His resting place · <strong>Baekhap 38</strong></p><a href="/en/visiting">View the photo directions →</a></article></section>
-    <section className="memory-invitation" id="memories"><p className="section-kicker">Share a memory</p><h2>Help Us Remember Him</h2><p>Share a photograph, a story, or a lesson you carry with you. Submissions are reviewed by the family before publication.</p><a className="memory-button" href="/contribute">Share a Memory</a></section><footer><span>In Loving Memory of Professor Young Hoon Jung</span><span>한국어 · English</span></footer><MobileNav language="en" />
+    <section className="memory-invitation" id="memories"><p className="section-kicker">Share a memory</p><h2>Help Us Remember Him</h2><p>Share a photograph, a story, or a lesson you carry with you. Submissions are reviewed by the family before publication.</p><a className="memory-button" href="/en/contribute">Share a Memory</a></section><footer><span>In Loving Memory of Professor Young Hoon Jung</span><span>한국어 · English</span></footer><MobileNav language="en" />
   </main>;
 }
 import MobileNav from '../components/MobileNav';

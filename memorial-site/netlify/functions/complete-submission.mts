@@ -10,6 +10,7 @@ export default async function handler(request: Request) {
     const body = await request.json() as {
       submissionId?: string;
       submittedAt?: string;
+      title?: string;
       sharing?: string;
       contributor?: { name?: string; relationship?: string; memory?: string };
       consent?: { providerRights?: boolean; peopleNotice?: boolean };
@@ -17,16 +18,19 @@ export default async function handler(request: Request) {
     };
     const submissionId = String(body.submissionId ?? '');
     const files = Array.isArray(body.files) ? body.files : [];
-    if (!/^[0-9a-f-]{36}$/i.test(submissionId) || files.length < 1 || files.length > 10) return json({ error: '제출 정보가 올바르지 않습니다.' }, 400);
-    if (!body.consent?.providerRights || !body.consent?.peopleNotice) return json({ error: '필수 동의가 확인되지 않았습니다.' }, 400);
+    if (!/^[0-9a-f-]{36}$/i.test(submissionId) || files.length > 10) return json({ error: '제출 정보가 올바르지 않습니다.' }, 400);
+    if (!files.length && !String(body.contributor?.memory ?? '').trim()) return json({ error: '추억 내용을 입력해 주세요.' }, 400);
+    if (!body.consent?.providerRights || (files.length > 0 && !body.consent?.peopleNotice)) return json({ error: '필수 동의가 확인되지 않았습니다.' }, 400);
     const expected = `pending/`;
     if (files.some(file => !String(file.key ?? '').startsWith(expected) || !String(file.key ?? '').includes(`/${submissionId}/`))) {
       return json({ error: '파일 경로가 올바르지 않습니다.' }, 400);
     }
 
-    const bucket = requiredEnv('MEMORIAL_S3_BUCKET');
-    const s3 = s3Client();
-    await Promise.all(files.map(file => s3.send(new HeadObjectCommand({ Bucket: bucket, Key: String(file.key) }))));
+    if (files.length) {
+      const bucket = requiredEnv('MEMORIAL_S3_BUCKET');
+      const s3 = s3Client();
+      await Promise.all(files.map(file => s3.send(new HeadObjectCommand({ Bucket: bucket, Key: String(file.key) }))));
+    }
     const submittedAt = body.submittedAt && !Number.isNaN(Date.parse(body.submittedAt)) ? body.submittedAt : new Date().toISOString();
     const status = body.sharing === 'family' ? 'FAMILY' : 'PENDING';
     const item = {
@@ -40,12 +44,13 @@ export default async function handler(request: Request) {
       sharing: body.sharing === 'family' ? 'family' : 'review',
       submittedAt,
       updatedAt: submittedAt,
+      ...(typeof body.title === 'string' && body.title.trim() ? { titleKo: body.title.trim().slice(0, 200) } : {}),
       contributor: {
         name: String(body.contributor?.name ?? '').slice(0, 80),
         relationship: String(body.contributor?.relationship ?? '').slice(0, 80),
         memory: String(body.contributor?.memory ?? '').slice(0, 5000),
       },
-      consent: { providerRights: true, peopleNotice: true },
+      consent: { providerRights: true, peopleNotice: !!body.consent?.peopleNotice },
       files: files.map(file => ({
         key: String(file.key),
         originalName: String(file.originalName ?? '').slice(0, 255),

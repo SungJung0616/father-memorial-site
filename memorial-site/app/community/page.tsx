@@ -32,8 +32,8 @@ export default function CommunityPage() {
 
     <section className="community-feed" aria-label="공개된 추억 목록">
       {memories.slice(0, visible).map(memory => <article className={memory.isPinned ? 'memory-card pinned' : 'memory-card'} key={memory.id}>
-        <Link className="memory-card-link" href={`/community/story?id=${encodeURIComponent(memory.id)}`} aria-label={`${memory.title} 전체 내용 보기`}>
-          <div className="memory-card-cover">{memory.photos[0] ? <img src={memory.photos[0].url} alt="" /> : <span aria-hidden="true">記憶</span>}</div>
+        <Link className="memory-card-link" style={!memory.photos.length ? {gridTemplateColumns:'1fr'} : undefined} href={`/community/story?id=${encodeURIComponent(memory.id)}`} aria-label={`${memory.title} 전체 내용 보기`}>
+          {memory.photos[0] && <div className="memory-card-cover"><img src={memory.photos[0].url} alt="" /></div>}
           <div className="memory-card-copy">
             <div className="post-meta"><span>{memory.isPinned ? '📌 중요 소식' : (memory.category || memory.group)}</span><span>{new Date(memory.submittedAt).toLocaleDateString('ko-KR')}</span></div>
             <h2>{memory.title}</h2>
