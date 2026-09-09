@@ -23,7 +23,7 @@ export default function HeroCarousel({language='ko'}:{language?:'ko'|'en'}){
   const [current,setCurrent]=useState(0); const [paused,setPaused]=useState(false); const touchStart=useRef<number|null>(null);
   const activeCurrent=Math.min(current,slides.length-1);
   const move=(direction:number)=>setCurrent(index=>(index+direction+slides.length)%slides.length);
-  useEffect(()=>{fetch('/api/site-settings').then(async response=>response.ok?await response.json() as HeroSettings:null).then(result=>{if(result?.heroes?.length)setManagedSlides(result.heroes.map(hero=>({label:language==='en'?(hero.labelEn||'Professor Young Hoon Jung'):(hero.labelKo||'정영훈 교수님 대표사진'),image:hero.url,focalX:hero.focalX,focalY:hero.focalY})));}).catch(()=>undefined);},[language]);
+  useEffect(()=>{fetch(`/api/site-settings?refresh=${Date.now()}`, {cache:'no-store'}).then(async response=>response.ok?await response.json() as HeroSettings:null).then(result=>{if(result?.heroes?.length)setManagedSlides(result.heroes.map(hero=>({label:language==='en'?(hero.labelEn||'Professor Young Hoon Jung'):(hero.labelKo||'정영훈 교수님 대표사진'),image:hero.url,focalX:hero.focalX,focalY:hero.focalY})));}).catch(()=>undefined);},[language]);
   useEffect(()=>{
     if(paused||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
     const timer=window.setInterval(()=>setCurrent(index=>(index+1)%slides.length),6000); return()=>window.clearInterval(timer);

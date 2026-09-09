@@ -44,7 +44,7 @@ async function resolvePublishedFile(item: HeroItem, db: ReturnType<typeof docume
   if (item.source === 'static') return null;
   const match = item.key?.match(/^published\/([0-9a-f-]{36})\//i);
   if (!match) return null;
-  const result = await db.send(new GetCommand({ TableName: table, Key: { PK: `SUBMISSION#${match[1]}`, SK: 'META' } }));
+  const result = await db.send(new GetCommand({ TableName: table, Key: { PK: `SUBMISSION#${match[1]}`, SK: 'META' }, ConsistentRead: true }));
   if (result.Item?.status !== 'PUBLISHED' || !Array.isArray(result.Item.publishedFiles)) return null;
   return result.Item.publishedFiles.find((file: PublishedFile) => file.publishedKey === item.key && file.type?.startsWith('image/')) ?? null;
 }
@@ -52,6 +52,7 @@ async function resolvePublishedFile(item: HeroItem, db: ReturnType<typeof docume
 async function withUrl(item: HeroItem, db: ReturnType<typeof documentClient>, table: string) {
   if (item.source === 'static') return item;
   const file = await resolvePublishedFile(item, db, table);
+  if (!file) return null;
   const key = file?.processingStatus === 'READY' && file.webKey ? file.webKey : item.key;
   const url = await getSignedUrl(s3Client(), new GetObjectCommand({ Bucket: requiredEnv('MEMORIAL_S3_BUCKET'), Key: key }), { expiresIn: 60 * 60 });
   return { ...item, url };
@@ -78,8 +79,9 @@ export default async function handler(request: Request) {
       const result = await db.send(new GetCommand({ TableName: table, Key: { PK: 'CONFIG#SITE', SK: 'HERO' } }));
       const stored = Array.isArray(result.Item?.heroes) ? result.Item.heroes.map(cleanHero).filter(Boolean) as HeroItem[] : [];
       const activeStored = await validHeroes(stored, db, table);
-      const heroes = await Promise.all((activeStored.length ? activeStored : defaultHeroes).map(item => withUrl(item, db, table)));
-      if (!adminView) return json({ heroes }, 200, { 'cache-control': 'public, max-age=60' });
+      const resolvedHeroes = (await Promise.all((activeStored.length ? activeStored : defaultHeroes).map(item => withUrl(item, db, table)))).filter(Boolean);
+      const heroes = resolvedHeroes.length ? resolvedHeroes : defaultHeroes;
+      if (!adminView) return json({ heroes }, 200, { 'cache-control': 'no-store', 'netlify-cdn-cache-control': 'no-store' });
 
       const published = await db.send(new QueryCommand({
         TableName: table, IndexName: 'GSI1', KeyConditionExpression: 'GSI1PK = :status',

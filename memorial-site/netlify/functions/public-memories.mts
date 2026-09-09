@@ -19,8 +19,8 @@ type PublishedItem = {
 };
 
 const publicCacheHeaders = {
-  'cache-control': 'public, max-age=60, stale-while-revalidate=120',
-  'netlify-cdn-cache-control': 'public, durable, s-maxage=300, stale-while-revalidate=300',
+  'cache-control': 'no-store',
+  'netlify-cdn-cache-control': 'no-store',
 };
 
 export default async function handler(request: Request) {
@@ -55,6 +55,7 @@ export default async function handler(request: Request) {
       const result = await documentClient().send(new GetCommand({
         TableName: tableName(),
         Key: { PK: `SUBMISSION#${requestedId}`, SK: 'META' },
+        ConsistentRead: true,
       }));
       const item = result.Item as PublishedItem | undefined;
       if (!item || item.status !== 'PUBLISHED') return json({ error: '공개된 추억을 찾을 수 없습니다.' }, 404);
@@ -71,7 +72,11 @@ export default async function handler(request: Request) {
     }));
     const now = Date.now();
     const isActivePin = (item: PublishedItem) => Boolean(item.pinned) && (!item.pinStartsAt || Date.parse(item.pinStartsAt) <= now) && (!item.pinEndsAt || Date.parse(item.pinEndsAt) >= now);
-    const items = [...(result.Items as PublishedItem[] ?? [])].sort((a, b) => Number(isActivePin(b)) - Number(isActivePin(a)) || Date.parse(b.submittedAt || '') - Date.parse(a.submittedAt || ''));
+    // GSI reads are eventually consistent: never publish stale index contents after withdrawal.
+    const keys = (result.Items ?? []).map(item => ({ PK: item.PK, SK: item.SK }));
+    const table = tableName();
+    const fresh = await Promise.all(keys.map(Key => documentClient().send(new GetCommand({ TableName: table, Key, ConsistentRead: true }))));
+    const items = (fresh.map(result => result.Item).filter(Boolean) as PublishedItem[]).filter(item => item.status === 'PUBLISHED').sort((a, b) => Number(isActivePin(b)) - Number(isActivePin(a)) || Date.parse(b.submittedAt || '') - Date.parse(a.submittedAt || ''));
     const memories = await Promise.all(items.map(async item => ({ ...(await toMemory(item, 'thumb')), isPinned: isActivePin(item) })));
     return json({ memories }, 200, publicCacheHeaders);
   } catch (error) {

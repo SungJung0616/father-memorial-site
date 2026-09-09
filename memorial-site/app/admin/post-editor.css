@@ -1,0 +1,11 @@
+.post-original, .post-visibility { padding: 20px; margin: 20px 0; background: #f4f6f5; }
+.post-original h3, .post-visibility h3 { font-size: 19px; margin: 0 0 12px; }
+.post-original p, .post-visibility p, .post-edit-fields p { font-size: 16px; line-height: 1.7; }
+.post-edit-fields { border: 0; padding: 0; min-width: 0; }
+.post-edit-fields legend { font-size: 20px; margin: 20px 0; }
+.post-edit-fields input, .post-edit-fields select, .post-edit-fields textarea { font-size: 16px; min-height: 44px; }
+.post-visibility label { display: flex; align-items: flex-start; gap: 12px; font-size: 16px; }
+.post-visibility input[type=checkbox] { width: 24px; height: 24px; flex: 0 0 24px; }
+.submission-detail .moderation-actions { flex-wrap: wrap; gap: 10px; }
+.submission-detail .moderation-actions button { min-height: 46px; font-size: 16px; }
+.post-confirm { border: 2px solid #557ac5; padding: 20px; margin-top: 20px; background: #fff; }
