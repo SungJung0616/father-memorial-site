@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import HomePhotos from './HomePhotos';
+import MemoryHeart from './MemoryHeart';
 import { loadPublicMemories, type PublicMemory } from '../lib/publicMemories';
 import { selectHomeMemories } from '../lib/homeMemorySelection';
 import './home-memories.css';
@@ -20,17 +21,25 @@ export default function HomeMemories({ language = 'ko' }: { language?: 'ko' | 'e
   const contribute = en ? '/en/contribute' : '/contribute';
   const allMemories = en ? '/community?lang=en' : '/community';
   const connection = (value: string) => en ? ({ '가족': 'Family', '가족·친지': 'Family', '친구': 'Friend', '제자': 'Student', '동료': 'Colleague', '교수·학계': 'Colleague', '기타': 'A shared connection', '추억': 'A shared memory' } as Record<string, string>)[value] || value : value;
-  const memoryCard = (memory: PublicMemory, featured = false) => <article key={memory.id} className={`shared-story${featured ? ' shared-feature' : ' shared-secondary'}${memory.photos.length ? ' with-photo' : ' words-only'}`}>
-    <Link className="shared-story-link" href={`/community/story?id=${encodeURIComponent(memory.id)}${en ? '&lang=en' : ''}`}>
+  const memoryCard = (memory: PublicMemory, featured = false) => {
+    const storyHref = `/community/story?id=${encodeURIComponent(memory.id)}${en ? '&lang=en' : ''}`;
+    return <article key={memory.id} className={`shared-story${featured ? ' shared-feature' : ' shared-secondary'}${memory.photos.length ? ' with-photo' : ' words-only'}`}>
+    <div className="shared-story-layout">
+      <Link className="shared-media-link" href={storyHref} aria-label={memory.title}>
       <div className="shared-story-media">
         {memory.photos[0] ? <img className="shared-story-photo" src={memory.photos[0].url} alt="" loading="lazy" /> : <span className="shared-quote" aria-hidden="true">“</span>}
       </div>
+      </Link>
+      <div className="shared-heart-row"><MemoryHeart id={memory.id} initialCount={memory.likeCount} language={language} /></div>
+      <Link className="shared-copy-link" href={storyHref}>
       <div className="shared-story-copy"><p className="shared-connection">{connection(memory.group)}</p><h3>{memory.title}</h3>
         <p className="shared-excerpt">{memory.body || (en ? 'A moment remembered in photographs.' : '사진으로 전해진 소중한 순간입니다.')}</p>
-        <div className="shared-story-end"><span>{en ? 'Read the Memory' : '이야기 읽기'} <span aria-hidden="true">→</span></span><small aria-label={en ? `${memory.likeCount ?? 0} hearts` : `하트 ${memory.likeCount ?? 0}개`}>♡ {memory.likeCount ?? 0}</small></div>
+        <div className="shared-story-end"><span>{en ? 'Read the Memory' : '이야기 읽기'} <span aria-hidden="true">→</span></span></div>
       </div>
-    </Link>
+      </Link>
+    </div>
   </article>;
+  };
   return <>
     <section className="shared-memories section-shell" id="shared-memories" aria-labelledby="shared-heading">
       <header className="shared-intro"><p className="section-kicker">SHARED MEMORIES</p><h2 id="shared-heading">{en ? 'Remembering Young Hoon' : '함께 기억하는 정영훈'}</h2><p>{en ? <>A father to his family. A friend, teacher, and colleague to so many.<br />Through the memories we share, we discover the many ways he touched our lives.</> : <>가족에게는 아버지로, 누군가에게는 친구와 스승, 동료로.<br />서로 다른 기억 속에 남아 있는 정영훈의 이야기를 함께 나눕니다.</>}</p></header>
