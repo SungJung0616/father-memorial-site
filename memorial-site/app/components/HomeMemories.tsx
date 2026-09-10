@@ -20,7 +20,7 @@ export default function HomeMemories({ language = 'ko' }: { language?: 'ko' | 'e
   const memories = selectHomeMemories(items);
   const contribute = en ? '/en/contribute' : '/contribute';
   const allMemories = en ? '/community?lang=en' : '/community';
-  const connection = (value: string) => en ? ({ '가족': 'Family', '가족·친지': 'Family', '친구': 'Friend', '제자': 'Student', '동료': 'Colleague', '교수·학계': 'Colleague', '기타': 'A shared connection', '추억': 'A shared memory' } as Record<string, string>)[value] || value : value;
+  const connection = (value: string) => en ? ({ '가족': 'Family', '가족·친지': 'Family', '친구': 'Friend', '친구분들': 'Friends', '제자': 'Student', '동료': 'Colleague', '교수·학계': 'Academic / Professional', '학교': 'Academic Life', '기타': 'A shared connection', '추억': 'A shared memory' } as Record<string, string>)[value] || value : value;
   const memoryCard = (memory: PublicMemory, featured = false) => {
     const storyHref = `/community/story?id=${encodeURIComponent(memory.id)}${en ? '&lang=en' : ''}`;
     return <article key={memory.id} className={`shared-story${featured ? ' shared-feature' : ' shared-secondary'}${memory.photos.length ? ' with-photo' : ' words-only'}`}>

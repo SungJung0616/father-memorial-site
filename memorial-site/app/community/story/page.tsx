@@ -7,8 +7,8 @@ import { useSearchParams } from 'next/navigation';
 import { loadPublicMemory, type PublicMemory } from '../../lib/publicMemories';
 
 const relationshipEn: Record<string, string> = {
-  '가족': 'Family', '가족·친지': 'Family', '친구': 'Friend', '제자': 'Student', '동료': 'Colleague',
-  '교수·학계': 'Colleague', '기타': 'A shared connection', '추억': 'A shared memory',
+  '가족': 'Family', '가족·친지': 'Family', '친구': 'Friend', '친구분들': 'Friends', '제자': 'Student', '동료': 'Colleague',
+  '교수·학계': 'Academic / Professional', '학교': 'Academic Life', '기타': 'A shared connection', '추억': 'A shared memory',
 };
 
 function MemoryDetailContent() {
