@@ -27,6 +27,11 @@ function CommunityContent() {
       .finally(() => setLoading(false));
   }, [en]);
 
+  useEffect(() => {
+    document.documentElement.lang = en ? 'en' : 'ko';
+    document.title = en ? 'Shared Memories | Professor Young Hoon Jung' : '故 정영훈님을 기억하며';
+  }, [en]);
+
   const relation = (value: string) => en ? relationshipEn[value] || value : value;
   const storyHref = (id: string) => `/community/story?id=${encodeURIComponent(id)}${en ? '&lang=en' : ''}`;
 

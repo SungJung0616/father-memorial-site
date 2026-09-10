@@ -31,6 +31,11 @@ function MemoryDetailContent() {
       .finally(() => setLoading(false));
   }, [id, en]);
 
+  useEffect(() => {
+    document.documentElement.lang = en ? 'en' : 'ko';
+    document.title = en ? `${memory?.title || 'A Shared Memory'} | Professor Young Hoon Jung` : '故 정영훈님을 기억하며';
+  }, [en, memory?.title]);
+
   const relation = (value: string) => en ? relationshipEn[value] || value : value;
   if (!id) return <main className="memory-detail-page" lang={en ? 'en' : 'ko'}><section className="memory-detail-message"><h1>{en ? 'This memory cannot be opened' : '이 추억을 열 수 없습니다'}</h1><p>{en ? 'The memory reference is missing.' : '추억 번호가 없습니다.'}</p><Link href={community}>{en ? 'Return to Shared Memories' : '추억 이야기로 돌아가기'}</Link></section></main>;
   if (loading) return <main className="memory-detail-page" lang={en ? 'en' : 'ko'}><p className="community-state">{en ? 'Opening the memory…' : '추억을 불러오고 있습니다…'}</p></main>;
