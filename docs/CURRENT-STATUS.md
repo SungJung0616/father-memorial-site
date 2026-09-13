@@ -1,6 +1,6 @@
 # 정영훈 교수님 추모 사이트 — Current Status
 
-상태 기준일: 2026-09-09  
+상태 기준일: 2026-09-12
 문서 역할: 현재 GitHub 저장소와 production 구현을 기준으로 한 source of truth 및 인수인계 문서
 
 ## 서비스 기준 정보
@@ -21,10 +21,11 @@
 1. Hero
 2. Shared Memories / 함께 기억하는 정영훈
 3. Memories in Photographs / 사진으로 만나는 기억
-4. His Life / 아버님의 삶
-5. Teaching & Research / 가르침과 연구
-6. Visiting His Resting Place / 아버님 찾아가는 길
-7. 짧은 Share a Memory 안내
+4. In His Own Sound / 그의 연주로 남은 순간
+5. His Life / 아버님의 삶
+6. Teaching & Research / 가르침과 연구
+7. Visiting His Resting Place / 아버님 찾아가는 길
+8. 짧은 Share a Memory 안내
 
 - 한국어 `/`와 영어 `/en`을 제공한다.
 - Hero에는 최대 5장의 관리자 대표사진, 한영 설명, 순서 및 초점 위치가 반영된다.
@@ -63,6 +64,8 @@
 
 ### 그 밖의 공개 콘텐츠
 
+- 색소폰 테마 입장 화면: 첫 대표사진 로딩 중에만 표시하며 최대 2초, 캐시 완료·deep link·reduced motion에서는 생략한다. 인위적으로 로딩을 지연하지 않는다.
+- YouTube 색소폰 기록 `zuJfpkJGUZI`: 사용자 클릭 후에만 privacy-enhanced iframe을 로드한다. 자동 재생하지 않으며 닫기와 외부 YouTube 대체 링크를 제공한다.
 - 생애 연보와 가족 확인 약력
 - 가르침과 연구의 흐름 및 가족 보관 이력서 기반 대표 논문 10편
 - 공개 추억 사진첩
