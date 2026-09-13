@@ -1,0 +1,22 @@
+.memorial-letter-entry { padding-top: 24px; }
+.memorial-letter-reopen { border: 0; background: transparent; color: var(--muted); padding: 8px 0; min-height: 44px; font-size: 14px; cursor: pointer; }
+.memorial-letter-reopen span { margin-left: 12px; color: var(--deep); }
+.memorial-letter { width: min(880px, calc(100vw - 80px)); max-width: none; max-height: 90dvh; margin: auto; padding: 0; border: 0; border-top: 1px solid var(--blue); border-radius: 0; background: rgb(247 246 242 / 98%); color: var(--ink); overflow-y: auto; overscroll-behavior: contain; }
+.memorial-letter::backdrop { background: rgb(13 29 37 / 42%); backdrop-filter: blur(5px); }
+.memorial-letter[open] { animation: memorial-letter-in 280ms ease-out; }
+.memorial-letter-header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 54px; background: var(--paper); }
+.memorial-letter-header h2 { margin: 0; color: var(--deep); font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: 400; letter-spacing: .12em; }
+.memorial-letter-close { width: 48px; height: 48px; padding: 0; border: 0; background: transparent; color: var(--muted); font-size: 28px; cursor: pointer; }
+.memorial-letter-body { padding: 20px 76px 64px; }
+.memorial-letter-body p { margin: 0 0 1.65em; font-family: Georgia, 'Noto Serif KR', 'Batang', serif; font-size: clamp(20px, 2vw, 26px); line-height: 1.9; font-weight: 400; white-space: pre-line; word-break: keep-all; overflow-wrap: anywhere; letter-spacing: -.025em; }
+.memorial-letter-body p:last-of-type { color: var(--deep); margin-top: 2.5em; }
+.memorial-letter-enter { display: flex; align-items: center; justify-content: space-between; gap: 28px; width: 100%; min-height: 56px; margin-top: 48px; padding: 18px 0; border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--deep); background: transparent; color: var(--deep); font-size: 16px; text-align: left; cursor: pointer; }
+.memorial-letter button:focus-visible, .memorial-letter-reopen:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+@keyframes memorial-letter-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 640px) {
+  .memorial-letter { width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; }
+  .memorial-letter-header { padding: 12px 20px; }
+  .memorial-letter-body { padding: 20px 24px 48px; }
+  .memorial-letter-body p { font-size: 21px; line-height: 1.9; }
+}
+@media (prefers-reduced-motion: reduce) { .memorial-letter[open] { animation: none; } }

@@ -2,6 +2,7 @@ import HomeMemories from './components/HomeMemories';
 import TeachingResearch from './components/TeachingResearch';
 import SaxophoneEntrance from './components/SaxophoneEntrance';
 import SaxophoneVideo from './components/SaxophoneVideo';
+import MemorialLetter from './components/MemorialLetter';
 
 const milestones = [
   { year: '1957', label: '서울 용산구 후암동 출생' },
@@ -45,6 +46,7 @@ export default function Home() {
         <a className="scroll-cue" href="#shared-memories" aria-label="다음 내용으로 이동"><span />천천히 내려보기</a>
       </section>
 
+      <MemorialLetter />
       <HomeMemories />
       <SaxophoneVideo />
 
