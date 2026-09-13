@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import './extra.css';
 import './home-section-spacing.css';
+import './saxophone-experience.css';
 
 export const metadata: Metadata = {
   title: '故 정영훈님을 기억하며',

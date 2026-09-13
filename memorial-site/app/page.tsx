@@ -1,5 +1,7 @@
 import HomeMemories from './components/HomeMemories';
 import TeachingResearch from './components/TeachingResearch';
+import SaxophoneEntrance from './components/SaxophoneEntrance';
+import SaxophoneVideo from './components/SaxophoneVideo';
 
 const milestones = [
   { year: '1957', label: '서울 용산구 후암동 출생' },
@@ -18,6 +20,7 @@ const milestones = [
 export default function Home() {
   return (
     <main className="memory-home">
+      <SaxophoneEntrance />
       <section className="hero" id="home">
         <header className="site-header">
           <a className="wordmark" href="#home" aria-label="홈으로 이동">
@@ -43,6 +46,7 @@ export default function Home() {
       </section>
 
       <HomeMemories />
+      <SaxophoneVideo />
 
       <section className="intro section-shell" id="life">
         <p className="section-kicker">A life of scholarship and devotion</p>

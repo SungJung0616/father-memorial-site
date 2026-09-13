@@ -1,0 +1,40 @@
+.saxophone-entrance[hidden] { display: none; }
+.saxophone-entrance { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: var(--paper, #f7f6f2); color: var(--deep, #004483); pointer-events: none; animation: entrance-safety 2s step-end forwards; }
+.saxophone-entrance-mark { text-align: center; }
+.saxophone-entrance svg { width: 112px; height: 154px; margin-bottom: 24px; }
+.saxophone-outline { stroke-dasharray: 1; animation: saxophone-draw 1.6s ease-out both; }
+.saxophone-entrance p { margin: 0 0 12px; font: 26px Georgia, serif; }
+.saxophone-entrance span { font-size: 11px; letter-spacing: .18em; }
+@keyframes saxophone-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes entrance-safety { to { visibility: hidden; } }
+
+.sound-feature { padding: clamp(64px, 8vw, 112px) 0 48px; background: #e9ece8; color: var(--ink, #273039); }
+.sound-heading.section-shell { position: relative; padding-top: 0; padding-bottom: 52px; }
+.sound-heading h2 { margin: 24px 0 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(52px, 8.5vw, 118px); line-height: 1.06; font-weight: 400; letter-spacing: -.045em; }
+.sound-heading h2 em { font-weight: 400; }
+.sound-introduction { position: absolute; right: 0; bottom: 64px; max-width: 260px; margin: 0; font-size: 17px; line-height: 1.6; }
+.sound-stage { width: min(100%, 1440px); margin: 0 auto; background: #202625; }
+.sound-poster { position: relative; display: block; width: 100%; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; }
+.sound-poster img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: contain; }
+.sound-play { position: absolute; bottom: 32px; left: max(24px, 6vw); display: flex; align-items: center; gap: 16px; padding: 14px 20px; background: #202625; font: 15px Arial, sans-serif; }
+.sound-play svg { width: 20px; height: 20px; transition: transform .2s ease; }
+.sound-poster:hover .sound-play svg { transform: translateX(3px); }
+.sound-poster:focus-visible { outline: 3px solid var(--blue); outline-offset: -6px; }
+.sound-player { aspect-ratio: 16 / 9; }
+.sound-player iframe { display: block; width: 100%; height: 100%; border: 0; }
+.sound-caption.section-shell { padding-top: 22px; padding-bottom: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 24px; font-size: 13px; line-height: 1.6; }
+.sound-caption > div { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+.sound-caption a, .sound-caption button { color: inherit; background: none; border: 0; border-bottom: 1px solid currentColor; padding: 10px 0; font: inherit; text-decoration: none; cursor: pointer; min-height: 44px; }
+@media (max-width: 700px) {
+  .sound-heading.section-shell { padding-bottom: 32px; }
+  .sound-heading h2 { font-size: clamp(44px, 11vw, 72px); }
+  .sound-introduction { position: static; margin-top: 24px; font-size: 16px; }
+  .sound-poster img { max-height: none; }
+  .sound-play { left: 16px; bottom: 16px; gap: 10px; padding: 12px 14px; font-size: 14px; }
+  .sound-caption.section-shell { flex-direction: column; gap: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .saxophone-entrance { display: none; }
+  .saxophone-outline, .sound-play svg { animation: none; transition: none; }
+  .sound-poster:hover .sound-play svg { transform: none; }
+}

@@ -1,4 +1,6 @@
 import HomeMemories from '../components/HomeMemories';
+import SaxophoneEntrance from '../components/SaxophoneEntrance';
+import SaxophoneVideo from '../components/SaxophoneVideo';
 const milestones = [
   { year: '1957', label: 'Born in Huam-dong, Yongsan-gu, Seoul' },
   { year: '1981', label: 'B.S., Seoul National University College of Pharmacy' },
@@ -15,8 +17,10 @@ const milestones = [
 
 export default function EnglishHome(){
   return <main className="memory-home" lang="en">
+    <SaxophoneEntrance language="en" />
     <section className="hero" id="home"><header className="site-header"><a className="wordmark" href="/en"><span className="wordmark-ko">Professor Young Hoon Jung</span><span className="wordmark-en">In loving memory</span></a><nav className="desktop-nav" aria-label="Main navigation"><a href="#shared-memories">Shared Memories</a><a href="#life">His Life</a><a href="#teaching">Teaching &amp; Research</a><a href="/en/photos">Photographs</a><a href="/en/visiting">Resting Place</a></nav><div className="header-actions"><Link className="desktop-login" href="/admin">Sign In</Link><Link className="language-button" href="/" aria-label="한국어로 보기">한국어</Link></div></header><HeroCarousel language="en"/><div className="hero-shade"/><div className="hero-content"><p className="eyebrow">In loving memory</p><h1>Professor<br/>Young Hoon Jung</h1><p className="dates">October 17, 1957 — August 24, 2026</p><blockquote>We keep his memory alive by sharing our own.</blockquote><p className="hero-support">A place for family, friends, students, and colleagues to share their memories of Young Hoon.</p><div className="hero-actions"><a className="primary-action" href="#shared-memories">Read Memories</a><a className="secondary-action" href="/en/contribute">Share a Memory</a></div></div></section>
     <HomeMemories language="en" />
+    <SaxophoneVideo language="en" />
     <section className="intro section-shell" id="life"><p className="section-kicker">A life of scholarship and devotion</p><div className="intro-grid"><h2>A passion for scholarship.<br/>A warmth for people.</h2><div><p>Born on October 17, 1957, in Huam-dong, Seoul, Professor Young Hoon Jung began his academic journey at Seoul National University College of Pharmacy and earned his Ph.D. in Chemistry at UCLA. After continuing his research at Harvard, he devoted decades to research and education at Dongduk Women’s University and Sungkyunkwan University. Even after retirement, he continued serving students, academia, and industry as a professor emeritus, faculty member, and adviser.</p><p className="school-history"><strong>School communities</strong><span>Sunlim Middle School, Class 22 · Kyunggi High School, Class 72 · Seoul National University College of Pharmacy, Class 35</span></p><a className="text-link" href="#teaching">Teaching and research <span>→</span></a></div></div><div className="milestones">{milestones.map(item=><article key={item.year}><strong>{item.year}</strong><span>{item.label}</span></article>)}</div></section>
 
     <TeachingResearch language="en" />
