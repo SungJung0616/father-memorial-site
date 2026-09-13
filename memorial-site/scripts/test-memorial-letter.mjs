@@ -4,8 +4,10 @@ import { test } from 'node:test';
 import { LETTER_SEEN_KEY, memorialLetter, letterWasDismissed, rememberLetterDismissal } from '../app/lib/memorialLetter.ts';
 
 test('letter preserves Korean paragraphs and keeps English separately', () => {
-  assert.equal(memorialLetter.ko.length, 12);
-  assert.equal(memorialLetter.ko[0], '그날의 진동과 울림은 아직도 제 가슴속에 남아 있습니다.');
+  assert.equal(memorialLetter.ko.length, 13);
+  assert.equal(memorialLetter.ko[0], '2026년 8월 24일, 별이 하나 떨어졌습니다.');
+  assert.equal(memorialLetter.ko[1], '그날의 진동과 울림은 아직도 제 가슴속에 남아 있습니다.');
+  assert.equal(memorialLetter.en[0], 'On August 24, 2026, a star fell.');
   assert.equal(memorialLetter.ko.at(-1), '별은 떨어졌지만,\n그 빛은 아직 우리 곁에 남아 있습니다.');
   assert.equal(memorialLetter.en.length, memorialLetter.ko.length);
   assert.match(memorialLetter.en.at(-1), /its light is still here with us/);

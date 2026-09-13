@@ -1,6 +1,7 @@
 /** The Korean original is archival content. Do not replace it with a translation. */
 export const memorialLetter = {
   ko: [
+    '2026년 8월 24일, 별이 하나 떨어졌습니다.',
     '그날의 진동과 울림은 아직도 제 가슴속에 남아 있습니다.',
     '어렸을 때, 눈앞에 있던 그 별은 너무나 든든했습니다.\n언제나 그 자리에 있을 것 같았고, 그 빛 아래에서 저는 자랐습니다.',
     '하지만 시간이 흐르면서 그 든든함이 때로는 벽처럼 느껴지기도 했습니다.\n그 벽의 그림자 속에 제가 갇혀 있는 것 같았고,\n도망치고 싶었고, 벗어나고 싶었습니다.',
@@ -15,6 +16,7 @@ export const memorialLetter = {
     '별은 떨어졌지만,\n그 빛은 아직 우리 곁에 남아 있습니다.',
   ],
   en: [
+    'On August 24, 2026, a star fell.',
     'The vibration and resonance of that day are still with me.',
     'As a child, I felt so secure in the presence of that star.\nI thought it would always be there. I grew up in its light.',
     'But as time passed, that same strength sometimes felt like a wall.\nI felt caught in its shadow.\nI wanted to escape, to find my own way beyond it.',
