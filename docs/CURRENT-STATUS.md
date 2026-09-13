@@ -1,11 +1,12 @@
 # 정영훈 교수님 추모 사이트 — Current Status
 
-상태 기준일: 2026-09-12
+상태 기준일: 2026-09-13
 문서 역할: 현재 GitHub 저장소와 production 구현을 기준으로 한 source of truth 및 인수인계 문서
 
 ## 서비스 기준 정보
 
-- Production: https://father-memorial-test.netlify.app
+- Production: https://remembering-young-hoon.netlify.app
+- 2026-09-13: 기존 Netlify site ID를 유지하면서 이름/주소를 변경했다. S3 CORS에 신규 origin을 추가했고 기존 origin과 로컬 설정, PUT 메서드, 헤더 및 비공개 정책은 유지했다. 기존 `father-memorial-test.netlify.app` 주소는 변경 후 HTTP 404로 확인됐으며 자동 redirect가 없다. 공유 링크는 반드시 현재 주소를 사용한다.
 - GitHub: `SungJung0616/father-memorial-site`
 - 기본 branch: `codex/memorial-site`
 - 사이트 목적: **Community of Memory / Living Archive**

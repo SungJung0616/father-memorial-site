@@ -10,11 +10,11 @@
 
 ## Visit
 
-- [한국어 production](https://father-memorial-test.netlify.app/)
-- [English production](https://father-memorial-test.netlify.app/en)
-- [English: Share a Memory](https://father-memorial-test.netlify.app/en/contribute)
+- [한국어 production](https://remembering-young-hoon.netlify.app/)
+- [English production](https://remembering-young-hoon.netlify.app/en)
+- [English: Share a Memory](https://remembering-young-hoon.netlify.app/en/contribute)
 
-The current production address is still `father-memorial-test.netlify.app`. The selected future name, `remembering-young-hoon.netlify.app`, has **not** been activated. Do not share the new address until its upload-origin configuration and navigation have been verified.
+The production address changed to `remembering-young-hoon.netlify.app` on September 13, 2026. The existing Netlify site, deployment, environment configuration, and content were retained. S3 upload CORS now includes the new origin; use the new address for sharing. The old Netlify subdomain is not a guaranteed redirect.
 
 ## What is available
 

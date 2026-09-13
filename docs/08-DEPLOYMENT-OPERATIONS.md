@@ -58,6 +58,14 @@ AWS Budgets에는 모든 AWS 서비스를 대상으로 월 `US$20` 예산을 만
 
 공개 브라우저가 S3 원본 주소를 직접 사용하지 않게 한다. 업로드도 애플리케이션 서버를 통과시키지 않고, 짧게 유효한 presigned URL을 받아 S3로 직접 전송한다.
 
+### Production 주소 변경 (2026-09-13)
+
+- 현재 주소: `https://remembering-young-hoon.netlify.app`
+- 기존 Netlify site ID 및 배포/환경변수/데이터 연결 유지. 새 사이트 생성이나 데이터 이동 없음.
+- 비공개 미디어 버킷 CORS의 AllowedOrigins에 현재 주소 추가. 기존 사이트 origin 및 `http://localhost:3000` 유지.
+- AllowedMethods `PUT`, AllowedHeaders `*`, ExposeHeaders `ETag`, MaxAgeSeconds `3000` 유지. 퍼블릭 액세스 차단 및 ACL 설정 변경 없음.
+- 신규 origin의 실제 S3 OPTIONS 업로드 사전 요청: HTTP 200 확인.
+
 ## 저장 정책
 
 - 원본: 비공개, 수정 금지
