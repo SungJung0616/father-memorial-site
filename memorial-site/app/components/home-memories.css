@@ -42,6 +42,8 @@
 .shared-closing p { margin: 0 0 8px; color: var(--muted); font-size: 16px; line-height: 1.8; }
 .shared-closing .text-link { min-height: 44px; align-items: center; font-size: 16px; }
 .memory-home .hero-support { max-width: 590px; margin: 16px 0 0; color: rgb(255 255 255 / 85%); font-size: 16px; line-height: 1.8; }
+.memory-home .hero-support-ko span { display: block; white-space: nowrap; }
+.memory-home .hero-support.hero-support-ko { font-size: clamp(13px, 3.7vw, 16px); }
 .memory-home .hero-actions { margin-top: 24px; }
 .memory-home .closing-invitation { border-top: 1px solid var(--line); padding: 60px 24px 70px; background: transparent; color: var(--ink); }
 .memory-home .closing-invitation h2 { font-size: clamp(25px, 3vw, 36px); line-height: 1.5; }

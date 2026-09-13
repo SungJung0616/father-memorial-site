@@ -40,7 +40,7 @@ export default function Home() {
           <p className="eyebrow">In loving memory</p>
           <h1>故 정영훈님</h1>
           <p className="dates">1957. 10. 17. — 2026. 8. 24.</p>
-          <blockquote>기억은 함께 나눌수록 오래 남습니다.</blockquote><p className="hero-support">가족과 친구, 제자와 동료가 기억하는 정영훈 교수님의 이야기를 함께 나눕니다.</p>
+          <blockquote>기억은 함께 나눌수록 오래 남습니다.</blockquote><p className="hero-support hero-support-ko"><span>가족과 친구, 제자와 동료가 기억하는</span><span>정영훈 교수님의 이야기를 함께 나눕니다.</span></p>
           <div className="hero-actions"><a className="primary-action" href="#shared-memories">추억 읽기</a><a className="secondary-action" href="/contribute">추억 나누기</a></div>
         </div>
         <a className="scroll-cue" href="#shared-memories" aria-label="다음 내용으로 이동"><span />천천히 내려보기</a>

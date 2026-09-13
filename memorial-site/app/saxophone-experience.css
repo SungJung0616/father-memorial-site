@@ -12,6 +12,8 @@
 .sound-heading.section-shell { position: relative; padding-top: 0; padding-bottom: 52px; }
 .sound-heading h2 { margin: 24px 0 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(52px, 8.5vw, 118px); line-height: 1.06; font-weight: 400; letter-spacing: -.045em; }
 .sound-heading h2 em { font-weight: 400; }
+.sound-heading h2.sound-title-ko { font-size: clamp(25px, 6.2vw, 88px); white-space: nowrap; }
+.sound-heading:has(.sound-title-ko) .sound-introduction { position: static; max-width: none; margin-top: 24px; }
 .sound-introduction { position: absolute; right: 0; bottom: 64px; max-width: 260px; margin: 0; font-size: 17px; line-height: 1.6; }
 .sound-stage { width: min(100%, 1440px); margin: 0 auto; background: #202625; }
 .sound-poster { position: relative; display: block; width: 100%; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; }

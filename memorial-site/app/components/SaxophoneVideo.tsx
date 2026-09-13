@@ -16,7 +16,7 @@ export default function SaxophoneVideo({ language = 'ko' }: { language?: 'ko' | 
   return <section className="sound-feature" id="his-own-sound" aria-labelledby="sound-title">
     <div className="sound-heading section-shell">
       <p className="section-kicker">In His Own Sound</p>
-      <h2 id="sound-title">{english ? <>In His<br /><em>Own Sound.</em></> : <>그의 연주로<br /><em>남은 순간</em></>}</h2>
+      <h2 id="sound-title" className={english ? undefined : 'sound-title-ko'}>{english ? <>In His<br /><em>Own Sound.</em></> : '그의 연주로 남은 순간'}</h2>
       <p className="sound-introduction">{english ? 'A moment preserved in music.' : '음악으로 간직한 한 순간.'}</p>
     </div>
     <div className="sound-stage" onKeyDown={event => { if (event.key === 'Escape' && opened) close(); }}>
