@@ -1,5 +1,27 @@
 # 연구 기록 선별 검토 — 2026-09-13
 
+## 최종 공개 기준 — 이전 12편 선별을 대체
+
+가족의 추가 확인에 따라 정영훈 교수님이 교신저자로 확인되고 김인수 교수가 교신저자가 아닌 논문만 공개한다. 정영훈 교수님의 단독 교신저자 목록이라는 뜻은 아니다. 김인수 교수의 일반 공동저자 참여는 제외 사유가 아니며 저자 이름과 원문 순서를 유지한다. 연구의 단독 소유나 다른 연구자의 기여에 대한 판단을 하지 않는다.
+
+공개 선별 5편:
+
+| 연도 / 연구 | 교신저자 확인 출처 |
+| --- | --- |
+| 2006 Polybenzyl ethers / Lentiginosine | https://pubs.acs.org/doi/10.1021/ol061614x — Young Hoon Jung 교신저자 표시 |
+| 2021 PI3Kδ inhibitors | https://pubmed.ncbi.nlm.nih.gov/34332211/ — Young Hoon Jung 및 Jong Woo Kim 교신 연락 표시. Jong Woo Kim은 In Su Kim과 다른 저자 |
+| 2022 Eliglustat | https://pmc.ncbi.nlm.nih.gov/articles/PMC9029353/ — Young Hoon Jung correspondence 표시 |
+| 2023 HDAC6 inhibitors | https://pubmed.ncbi.nlm.nih.gov/36645952/ — Young Hoon Jung 교신 연락 표시 |
+| 2023 ent-Conduramine C-1 | https://pubmed.ncbi.nlm.nih.gov/36682231/ — Young Hoon Jung 및 Pulla Reddy Boggu 교신 연락 표시 |
+
+2000 N-allylcarbamates, 2003 allylic amination, 2007 palladium isomerization, 2011 sertraline, 2017 codonopsinine, 2020 chromanol/cromakalim, 2022 nojirimycin의 7편은 이번 확인에서 원문의 교신저자 표시를 충분히 검증하지 못해 공개 목록에서 보류한다. 김인수 교수님의 연구라고 판정한 것이 아니다. 기존 원자료를 코드 및 가족 이력서에 보존하며 추후 원문 확인 뒤 재검토한다.
+
+2021 제목의 기존 이력서 전사 `purinyl quinazoline derivatives`는 PubMed 원문 기록의 `purinyl quinazolinone derivatives`로 정정했다. 다른 제목을 임의로 재작성하지 않는다. 최초 화면은 2006, 2022 Eliglustat, 2023 HDAC6의 3편이며 전체 보기로 나머지 2편을 확인한다. 아래 특허 3건과 연구 흐름·디자인은 변경하지 않는다.
+
+이번 수정은 공개 선별 데이터와 설명, 연결된 회귀 테스트 및 현황 문서에 한정한다. AWS·관리자·사진 파이프라인·데이터 모델 변경은 없다.
+
+## 이전 검토 기록 — 최초 12편 구성 (현재 공개 목록 아님)
+
 ## 기준과 적용 범위
 
 가족이 제공한 이력서 2쪽의 대표 논문 10편을 기준으로 유지했다. 해당 목록에는 rhodium 관련 제목이 없으며, 이번 변경에서 기존 논문을 삭제하거나 제목을 수정하지 않았다.
